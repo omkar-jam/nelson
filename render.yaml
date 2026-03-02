@@ -1,17 +1,12 @@
-# Render Blueprint — one-click deploy for Nelson Ferreira site
-# Docs: https://render.com/docs/blueprint-spec
+# Render Blueprint — Nelson Ferreira site (web service only; use your existing DB)
+# Render free tier allows only ONE free Postgres per account. This blueprint does NOT create a DB.
 #
 # How to use:
-# 1. Push this repo to GitHub/GitLab.
-# 2. In Render: Dashboard → New → Blueprint.
-# 3. Connect the repo; Render will detect render.yaml and create the database + web service.
-# 4. After first deploy, set NEXTAUTH_URL in the web service to your live URL (e.g. https://nelson-xxxx.onrender.com).
-# 5. Admin: /admin — default login admin@example.com / changeme (change via ADMIN_EMAIL / ADMIN_PASSWORD env or re-run seed).
-
-databases:
-  - name: nelson-db
-    databaseName: nelson
-    plan: free  # or starter for production
+# 1. In Render: use an existing PostgreSQL (or create one outside this blueprint, then use it).
+# 2. New → Blueprint → connect omkar-jam/nelson. Apply; only the "nelson" web service will be created.
+# 3. In the nelson service: Environment → add DATABASE_URL and DIRECT_URL from your existing database (Internal or External URL).
+# 4. Set NEXTAUTH_URL to your service URL (e.g. https://nelson-xxxx.onrender.com) and NEXTAUTH_SECRET (or let it prompt).
+# 5. Deploy. Admin: /admin — login admin@example.com / changeme (run seed or set ADMIN_EMAIL/ADMIN_PASSWORD).
 
 services:
   - type: web
@@ -21,21 +16,12 @@ services:
     plan: free
 
     envVars:
+      # Paste your existing Postgres Internal/External URL in the Dashboard after creating the service
       - key: DATABASE_URL
-        fromDatabase:
-          name: nelson-db
-          property: connectionString
+        sync: false
       - key: DIRECT_URL
-        fromDatabase:
-          name: nelson-db
-          property: connectionString
+        sync: false
       - key: NEXTAUTH_SECRET
         generateValue: true
-      # Set in Dashboard after first deploy to your service URL, e.g. https://nelson-xxxx.onrender.com
       - key: NEXTAUTH_URL
         sync: false
-      # Optional: override default admin (default admin@example.com / changeme)
-      # - key: ADMIN_EMAIL
-      #   sync: false
-      # - key: ADMIN_PASSWORD
-      #   sync: false
