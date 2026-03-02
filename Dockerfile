@@ -1,6 +1,7 @@
 # ---- Base ----
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+# Use Debian slim so Prisma's glibc engine + OpenSSL work (Alpine 3.19+ dropped openssl1.1-compat)
+FROM node:20-bookworm-slim AS base
+RUN apt-get update -y && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # ---- Dependencies ----
@@ -15,6 +16,8 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY . .
+# Ensure public exists so COPY in runner never fails (repo may not have public/)
+RUN mkdir -p public
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
@@ -22,8 +25,7 @@ RUN npm run build
 FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs && useradd --system --uid 1001 --gid nodejs nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
