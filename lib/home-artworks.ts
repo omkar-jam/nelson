@@ -2,15 +2,15 @@ import 'server-only';
 import { getArtworks } from './artworks';
 
 const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.m4v', '.ogg'];
-const FALLBACK_HERO_VIDEO = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4';
+const FALLBACK_HERO_VIDEO = 'youtube:nY4LI6zMgxw';
 
-/** Sample videos shown when there are no artworks in the DB — so you can see how the Works section looks */
+/** YouTube videos shown in Works when there are no artworks in the DB */
 const SAMPLE_GALLERY_VIDEOS: HomeGalleryItem[] = [
-  { id: 'sample-1', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', title: 'Nocturne I', type: 'video' },
-  { id: 'sample-2', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', title: 'Nocturne II', type: 'video' },
-  { id: 'sample-3', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoy.mp4', title: 'Nocturne III', type: 'video' },
-  { id: 'sample-4', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4', title: 'Nocturne IV', type: 'video' },
-  { id: 'sample-5', src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', title: 'Nocturne V', type: 'video' },
+  { id: 'yt-1', src: 'youtube:l13V392f7IU', title: 'Work 1', type: 'youtube' },
+  { id: 'yt-2', src: 'youtube:G72EEYOl6kE', title: 'Work 2', type: 'youtube' },
+  { id: 'yt-3', src: 'youtube:8qLAdA3rTis', title: 'Work 3', type: 'youtube' },
+  { id: 'yt-4', src: 'youtube:iCWe46phyrc', title: 'Work 4', type: 'youtube' },
+  { id: 'yt-5', src: 'youtube:YM74h367HkM', title: 'Work 5', type: 'youtube' },
 ];
 
 export function isVideoUrl(url: string): boolean {
@@ -26,7 +26,7 @@ export type HomeGalleryItem = {
   id: string;
   src: string;
   title: string;
-  type: 'video' | 'image';
+  type: 'video' | 'image' | 'youtube';
 };
 
 export type HomeArtworkData = {

@@ -57,7 +57,7 @@ export type GalleryItem = {
   id: string;
   src: string;
   title: string;
-  type: 'video' | 'image';
+  type: 'video' | 'image' | 'youtube';
 };
 
 type Props = {
@@ -81,7 +81,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos }: Props) {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 80, damping: 22, delay: 0.2 }}
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 md:px-12 md:py-4"
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-3 bg-plati-dark/95 px-4 py-3 backdrop-blur-sm sm:px-6 md:px-12 md:py-4"
         style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
       >
         <div className="min-w-0 flex-1">
@@ -125,9 +125,6 @@ export function HomeContent({ heroVideoUrl, galleryVideos }: Props) {
             <p className="font-body text-caption leading-snug text-plati-muted">
               Updates on upcoming projects &amp; art insights. Private — unsubscribe anytime.
             </p>
-            <p className="font-body text-caption italic leading-tight text-plati-muted">
-              Para novidades em português, envie mensagem a pedir lista portuguesa.
-            </p>
           </motion.form>
           <motion.a
             href="#works"
@@ -162,7 +159,15 @@ export function HomeContent({ heroVideoUrl, galleryVideos }: Props) {
                 >
                   <div className="overflow-hidden border border-night-border bg-night-surface">
                     <div className="aspect-video w-full min-h-[180px]">
-                      {item.type === 'video' ? (
+                      {item.type === 'youtube' ? (
+                        <iframe
+                          title={item.title}
+                          src={`https://www.youtube.com/embed/${item.src.replace(/^youtube:/, '')}?autoplay=1&mute=1&rel=0&modestbranding=1`}
+                          className="h-full w-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : item.type === 'video' ? (
                         <video
                           autoPlay
                           muted
