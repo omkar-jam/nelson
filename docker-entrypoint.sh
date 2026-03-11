@@ -2,7 +2,9 @@
 set -e
 # Run migrations and seed if DATABASE_URL is set (e.g. on Render)
 if [ -n "$DATABASE_URL" ]; then
-  npx prisma db push --accept-data-loss 2>/dev/null || true
-  npx prisma db seed 2>/dev/null || true
+  echo "==> Running prisma db push..."
+  node node_modules/prisma/build/index.js db push --accept-data-loss
+  echo "==> Running prisma db seed..."
+  node node_modules/prisma/build/index.js db seed || echo "Seed warning (may already exist)"
 fi
 exec node server.js
