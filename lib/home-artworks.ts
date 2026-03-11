@@ -4,14 +4,38 @@ import { getArtworks } from './artworks';
 const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.m4v', '.ogg'];
 const FALLBACK_HERO_VIDEO = 'youtube:nY4LI6zMgxw';
 
-/** YouTube videos shown in Works when there are no artworks in the DB */
-const SAMPLE_GALLERY_VIDEOS: HomeGalleryItem[] = [
-  { id: 'yt-1', src: 'youtube:l13V392f7IU', title: 'Work 1', type: 'youtube' },
-  { id: 'yt-2', src: 'youtube:G72EEYOl6kE', title: 'Work 2', type: 'youtube' },
-  { id: 'yt-3', src: 'youtube:8qLAdA3rTis', title: 'Work 3', type: 'youtube' },
-  { id: 'yt-4', src: 'youtube:iCWe46phyrc', title: 'Work 4', type: 'youtube' },
-  { id: 'yt-5', src: 'youtube:YM74h367HkM', title: 'Work 5', type: 'youtube' },
+/** YouTube video IDs shown in Works when there are no artworks in the DB */
+const SAMPLE_YOUTUBE_IDS = [
+  'l13V392f7IU',
+  'G72EEYOl6kE',
+  '8qLAdA3rTis',
+  'iCWe46phyrc',
+  'YM74h367HkM',
 ];
+
+async function fetchYouTubeTitle(videoId: string): Promise<string> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
+      { next: { revalidate: 86400 } },
+    );
+    if (!res.ok) return videoId;
+    const data = (await res.json()) as { title?: string };
+    return data.title ?? videoId;
+  } catch {
+    return videoId;
+  }
+}
+
+async function buildSampleGalleryVideos(): Promise<HomeGalleryItem[]> {
+  const titles = await Promise.all(SAMPLE_YOUTUBE_IDS.map(fetchYouTubeTitle));
+  return SAMPLE_YOUTUBE_IDS.map((id, i) => ({
+    id: `yt-${i + 1}`,
+    src: `youtube:${id}`,
+    title: titles[i],
+    type: 'youtube' as const,
+  }));
+}
 
 export function isVideoUrl(url: string): boolean {
   try {
@@ -42,14 +66,14 @@ export async function getHomeArtworkData(): Promise<HomeArtworkData> {
     // Database unreachable — show hero + sample videos so you can see how the Works section looks
     return {
       heroVideoUrl: FALLBACK_HERO_VIDEO,
-      galleryVideos: SAMPLE_GALLERY_VIDEOS,
+      galleryVideos: await buildSampleGalleryVideos(),
     };
   }
 
   if (artworks.length === 0) {
     return {
       heroVideoUrl: FALLBACK_HERO_VIDEO,
-      galleryVideos: SAMPLE_GALLERY_VIDEOS,
+      galleryVideos: await buildSampleGalleryVideos(),
     };
   }
 
