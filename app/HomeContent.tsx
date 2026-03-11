@@ -60,12 +60,23 @@ export type GalleryItem = {
   type: 'video' | 'image' | 'youtube';
 };
 
+export type BlogPostPreview = {
+  id: string;
+  title: string;
+  excerpt: string;
+  slug: string;
+};
+
 type Props = {
   heroVideoUrl: string;
   galleryVideos: GalleryItem[];
+  blogPosts?: BlogPostPreview[];
 };
 
-export function HomeContent({ heroVideoUrl, galleryVideos }: Props) {
+export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
+  const blogsToShow = (blogPosts && blogPosts.length > 0)
+    ? blogPosts.map((p) => ({ id: p.id, title: p.title, excerpt: p.excerpt, url: `/blog/${p.slug}` }))
+    : BLOGS;
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -152,6 +163,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos }: Props) {
         </div>
         <div className="flex shrink-0 items-center gap-1 sm:gap-6 md:gap-8">
           <a href="#works" className="touch-target flex items-center px-2 py-3 font-body text-caption uppercase tracking-widest text-plati-soft transition hover:text-gleam sm:py-2 sm:text-body-sm">Artwork</a>
+          <a href="/blog" className="touch-target flex items-center px-2 py-3 font-body text-caption uppercase tracking-widest text-plati-soft transition hover:text-gleam sm:py-2 sm:text-body-sm">Blog</a>
           <a href="#contact" className="touch-target flex items-center px-2 py-3 font-body text-caption uppercase tracking-widest text-plati-soft transition hover:text-gleam sm:py-2 sm:text-body-sm">Contact</a>
         </div>
       </motion.nav>
@@ -331,12 +343,11 @@ export function HomeContent({ heroVideoUrl, galleryVideos }: Props) {
             <p className="mt-1 font-body text-body text-night-soft sm:mt-2 sm:text-body-lg">Exhibitions, residencies and reflections</p>
           </ScrollReveal>
           <div className="grid gap-6 sm:gap-12 md:grid-cols-2">
-            {BLOGS.map((blog, i) => (
+            {blogsToShow.map((blog, i) => (
               <ScrollReveal key={blog.id} once={false} variant={i === 0 ? 'scaleRotate' : 'flip'} delay={0.08 * i}>
                 <a
                   href={blog.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...(blog.url.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   className="group block min-h-[44px] border border-night-border bg-night-surface transition hover:border-gold/40 active:border-gold/50"
                 >
                   <article>

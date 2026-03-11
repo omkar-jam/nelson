@@ -58,37 +58,46 @@ export type HomeArtworkData = {
   galleryVideos: HomeGalleryItem[];
 };
 
+function hasValidMedia(url: string): boolean {
+  if (!url || !url.trim()) return false;
+  if (url.startsWith('youtube:')) return url.length > 'youtube:'.length;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function getHomeArtworkData(): Promise<HomeArtworkData> {
+  const sampleVideos = await buildSampleGalleryVideos();
+
   let artworks: Awaited<ReturnType<typeof getArtworks>>;
   try {
     artworks = await getArtworks();
   } catch {
-    // Database unreachable — show hero + sample videos so you can see how the Works section looks
-    return {
-      heroVideoUrl: FALLBACK_HERO_VIDEO,
-      galleryVideos: await buildSampleGalleryVideos(),
-    };
+    return { heroVideoUrl: FALLBACK_HERO_VIDEO, galleryVideos: sampleVideos };
   }
 
-  if (artworks.length === 0) {
-    return {
-      heroVideoUrl: FALLBACK_HERO_VIDEO,
-      galleryVideos: await buildSampleGalleryVideos(),
-    };
+  // Only include artworks with a valid media URL
+  const validArtworks = artworks.filter((a) => hasValidMedia(a.mediaUrl));
+
+  if (validArtworks.length === 0) {
+    return { heroVideoUrl: FALLBACK_HERO_VIDEO, galleryVideos: sampleVideos };
   }
 
-  const first = artworks[0];
+  const first = validArtworks[0];
   const firstIsVideo = isVideoUrl(first.mediaUrl);
-
   const heroVideoUrl = firstIsVideo ? first.mediaUrl : FALLBACK_HERO_VIDEO;
-  const gallerySource = firstIsVideo ? artworks.slice(1) : artworks;
+  const gallerySource = firstIsVideo ? validArtworks.slice(1) : validArtworks;
 
-  const galleryVideos: HomeGalleryItem[] = gallerySource.map((a) => ({
+  const dbItems: HomeGalleryItem[] = gallerySource.map((a) => ({
     id: a.id,
     src: a.mediaUrl,
     title: a.title,
     type: isVideoUrl(a.mediaUrl) ? 'video' : 'image',
   }));
 
-  return { heroVideoUrl, galleryVideos };
+  // Always keep the YouTube sample videos in the gallery alongside DB artworks
+  return { heroVideoUrl, galleryVideos: [...dbItems, ...sampleVideos] };
 }
