@@ -15,6 +15,15 @@ export default function AdminDashboardPage() {
             Add, edit and reorder gallery pieces (images and videos).
           </p>
         </Link>
+        <Link
+          href="/admin/newsletter"
+          className="border border-plati-border bg-plati p-6 transition hover:border-gleam/50"
+        >
+          <h2 className="font-display text-display-sm font-medium text-paper">Newsletter</h2>
+          <p className="mt-2 text-body text-plati-soft">
+            Send bulk emails to mailing list subscribers (SMTP).
+          </p>
+        </Link>
       </div>
     </main>
   );

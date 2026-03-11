@@ -1,12 +1,16 @@
-# Render Blueprint — Nelson Ferreira site (web service only; use your existing DB)
-# Render free tier allows only ONE free Postgres per account. This blueprint does NOT create a DB.
+# Render Blueprint — Nelson Ferreira site (Docker web service + PostgreSQL)
 #
 # How to use:
-# 1. In Render: use an existing PostgreSQL (or create one outside this blueprint, then use it).
-# 2. New → Blueprint → connect omkar-jam/nelson. Apply; only the "nelson" web service will be created.
-# 3. In the nelson service: Environment → add DATABASE_URL and DIRECT_URL from your existing database (Internal or External URL).
-# 4. Set NEXTAUTH_URL to your service URL (e.g. https://nelson-xxxx.onrender.com) and NEXTAUTH_SECRET (or let it prompt).
-# 5. Deploy. Admin: /admin — login admin@example.com / changeme (run seed or set ADMIN_EMAIL/ADMIN_PASSWORD).
+# 1. New → Blueprint → connect your repo. Apply; Render creates the "nelson" web service and "nelson-db" Postgres.
+# 2. Set NEXTAUTH_URL to your service URL (e.g. https://nelson-xxxx.onrender.com) in the nelson service Environment.
+# 3. Deploy. The Docker entrypoint runs Prisma migrations (db push) and seed on startup.
+# 4. Admin: /admin — sign in with the user created by seed (or set ADMIN_EMAIL/ADMIN_PASSWORD in seed).
+
+databases:
+  - name: nelson-db
+    plan: free
+    databaseName: nelson
+    user: nelson
 
 services:
   - type: web
@@ -16,12 +20,20 @@ services:
     plan: free
 
     envVars:
-      # Paste your existing Postgres Internal/External URL in the Dashboard after creating the service
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: nelson-db
+          property: connectionString
       - key: DIRECT_URL
-        sync: false
+        fromDatabase:
+          name: nelson-db
+          property: connectionString
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: NEXTAUTH_URL
+        sync: false
+      # Admin credentials for the seeded admin user (set these in the Render dashboard)
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
         sync: false
