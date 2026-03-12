@@ -45,6 +45,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Confirmation email to the new subscriber
+    try {
+      const confirmText = "You're on the list.\n\nYou'll receive occasional updates on my work and projects. You can unsubscribe anytime.\n\nBest,\nNelson Ferreira";
+      const confirmHtml = "<p>You're on the list.</p><p>You'll receive occasional updates on my work and projects. You can unsubscribe anytime.</p><p>Best,<br>Nelson Ferreira</p>";
+      await sendMail({
+        to: email,
+        subject: "You're on the list — Nelson Ferreira",
+        text: confirmText,
+        html: confirmHtml,
+      });
+    } catch (err) {
+      console.error('Subscribe: failed to send confirmation email:', err);
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error('Subscribe error:', e);
