@@ -10,6 +10,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const countryCode = typeof body.countryCode === 'string' ? body.countryCode.trim() : '+44';
+    const phoneRaw = typeof body.phone === 'string' ? body.phone.replace(/\D/g, '').trim() : '';
+    const code = (countryCode && String(countryCode).startsWith('+')) ? String(countryCode).trim() : `+${(countryCode || '44').replace(/\D/g, '')}`;
+    const phone = phoneRaw ? `${code} ${phoneRaw}` : null;
 
     if (!email) {
       return NextResponse.json(
@@ -27,18 +31,24 @@ export async function POST(request: NextRequest) {
 
     await prisma.subscriber.upsert({
       where: { email },
-      create: { email, unsubscribed: false },
-      update: { unsubscribed: false, updatedAt: new Date() },
+      create: { email, phone, unsubscribed: false },
+      update: {
+        ...(phone != null && { phone }),
+        unsubscribed: false,
+        updatedAt: new Date(),
+      },
     });
 
     const artistEmail = process.env.ARTIST_EMAIL;
     if (artistEmail) {
       try {
+        const phoneLine = phone ? `\nPhone: ${phone}` : '';
+        const phoneLineHtml = phone ? `<p><strong>Phone:</strong> ${phone}</p>` : '';
         await sendMail({
           to: artistEmail,
           subject: '[Mailing list] New subscriber',
-          text: `A new person joined your mailing list:\n\n${email}`,
-          html: `<p>A new person joined your mailing list:</p><p><a href="mailto:${email}">${email}</a></p>`,
+          text: `A new person joined your mailing list:\n\nEmail: ${email}${phoneLine}`,
+          html: `<p>A new person joined your mailing list:</p><p><a href="mailto:${email}">${email}</a></p>${phoneLineHtml}`,
         });
       } catch (err) {
         console.error('Subscribe: failed to notify artist:', err);
@@ -47,8 +57,8 @@ export async function POST(request: NextRequest) {
 
     // Confirmation email to the new subscriber
     try {
-      const confirmText = "You're on the list.\n\nYou'll receive occasional updates on my work and projects. You can unsubscribe anytime.\n\nBest,\nNelson Ferreira";
-      const confirmHtml = "<p>You're on the list.</p><p>You'll receive occasional updates on my work and projects. You can unsubscribe anytime.</p><p>Best,<br>Nelson Ferreira</p>";
+      const confirmText = "You're on the list.\n\nI'll text you when I've received your signup. You'll also get occasional updates on my work and projects — unsubscribe anytime.\n\nBest,\nNelson Ferreira";
+      const confirmHtml = "<p>You're on the list.</p><p>I'll text you when I've received your signup. You'll also get occasional updates on my work and projects — unsubscribe anytime.</p><p>Best,<br>Nelson Ferreira</p>";
       await sendMail({
         to: email,
         subject: "You're on the list — Nelson Ferreira",

@@ -34,6 +34,44 @@ const STUDIO = {
 const CONTACT_EMAIL = 'nelson.ferreira.uk@gmail.com';
 const CONTACT_PHONE = '+447950930301';
 
+const PHONE_COUNTRY_CODES = [
+  { value: '+44', label: '+44 UK' },
+  { value: '+1', label: '+1 US/CA' },
+  { value: '+91', label: '+91 India' },
+  { value: '+353', label: '+353 Ireland' },
+  { value: '+351', label: '+351 Portugal' },
+  { value: '+33', label: '+33 France' },
+  { value: '+49', label: '+49 Germany' },
+  { value: '+39', label: '+39 Italy' },
+  { value: '+34', label: '+34 Spain' },
+  { value: '+61', label: '+61 Australia' },
+  { value: '+64', label: '+64 NZ' },
+  { value: '+81', label: '+81 Japan' },
+  { value: '+86', label: '+86 China' },
+  { value: '+55', label: '+55 Brazil' },
+  { value: '+27', label: '+27 South Africa' },
+  { value: '+31', label: '+31 Netherlands' },
+  { value: '+32', label: '+32 Belgium' },
+  { value: '+41', label: '+41 Switzerland' },
+  { value: '+43', label: '+43 Austria' },
+  { value: '+46', label: '+46 Sweden' },
+  { value: '+47', label: '+47 Norway' },
+  { value: '+45', label: '+45 Denmark' },
+  { value: '+48', label: '+48 Poland' },
+  { value: '+358', label: '+358 Finland' },
+  { value: '+971', label: '+971 UAE' },
+  { value: '+966', label: '+966 Saudi Arabia' },
+  { value: '+62', label: '+62 Indonesia' },
+  { value: '+65', label: '+65 Singapore' },
+  { value: '+60', label: '+60 Malaysia' },
+  { value: '+66', label: '+66 Thailand' },
+  { value: '+84', label: '+84 Vietnam' },
+  { value: '+63', label: '+63 Philippines' },
+  { value: '+92', label: '+92 Pakistan' },
+  { value: '+88', label: '+88 Bangladesh' },
+  { value: '+977', label: '+977 Nepal' },
+];
+
 const SOCIAL = [
   { name: 'LinkedIn', href: 'https://www.linkedin.com/in/nelson-ferreira-visual-artist/', icon: 'linkedin' },
   { name: 'Instagram', href: 'https://www.instagram.com/nelson.ferreira.visual.artist/?hl=pt', icon: 'instagram' },
@@ -97,6 +135,8 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
     : BLOGS;
   const [menuOpen, setMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [countryCode, setCountryCode] = useState('+44');
   const [submitted, setSubmitted] = useState(false);
 
   // Close menu on route change / scroll
@@ -129,7 +169,11 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
       const res = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({
+          email: email.trim(),
+          phone: phone.trim() || undefined,
+          countryCode: countryCode || '+44',
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -296,25 +340,45 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
             ) : (
               <>
                 <p className="font-body text-body-sm text-plati-soft">Join the mailing list</p>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    className="min-h-[44px] min-w-0 flex-1 rounded-none border border-plati-border bg-plati/90 px-3 py-2.5 font-body text-base text-paper placeholder:text-plati-muted focus:border-gleam focus:outline-none"
-                    required
-                  />
-                  <motion.button
-                    type="submit"
-                    disabled={loading}
-                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(197,191,180,0.2)' }}
-                    whileTap={{ scale: 0.97 }}
-                    className="touch-target shrink-0 border border-gleam/60 bg-gleam/10 px-4 py-2.5 font-body text-sm uppercase tracking-widest text-gleam transition disabled:opacity-60"
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  className="min-h-[44px] w-full rounded-none border border-plati-border bg-plati/90 px-3 py-2.5 font-body text-base text-paper placeholder:text-plati-muted focus:border-gleam focus:outline-none"
+                  required
+                />
+                <div className="flex flex-nowrap overflow-hidden rounded-none border border-plati-border bg-plati/90 focus-within:border-gleam">
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="h-[44px] w-[52px] shrink-0 cursor-pointer border-0 border-r border-plati-border bg-transparent py-0 pl-1.5 pr-1 text-center font-body text-sm text-paper focus:border-gleam focus:outline-none focus:ring-0 [&>option]:bg-plati-dark"
+                    aria-label="Country code"
                   >
-                    {loading ? '…' : 'Submit'}
-                  </motion.button>
+                    {PHONE_COUNTRY_CODES.map(({ value, label }) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="Mobile number"
+                    className="min-h-[44px] min-w-0 flex-1 border-0 bg-transparent px-3 py-2.5 font-body text-base text-paper placeholder:text-plati-muted focus:border-0 focus:outline-none focus:ring-0"
+                    autoComplete="tel"
+                  />
                 </div>
+                <motion.button
+                  type="submit"
+                  disabled={loading}
+                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(197,191,180,0.2)' }}
+                  whileTap={{ scale: 0.97 }}
+                  className="touch-target w-full border border-gleam/60 bg-gleam/10 px-4 py-2.5 font-body text-sm uppercase tracking-widest text-gleam transition disabled:opacity-60 sm:w-auto"
+                >
+                  {loading ? '…' : 'Submit'}
+                </motion.button>
                 {error && (
                   <p className="font-body text-caption text-red-400">{error}</p>
                 )}

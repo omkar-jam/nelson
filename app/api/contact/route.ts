@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
       });
 
       // Confirmation email to the person who submitted
-      const confirmText = `Hi${name ? ` ${name}` : ''},\n\nThanks for getting in touch. I've received your message and will get back to you soon.\n\nBest,\nNelson Ferreira`;
-      const confirmHtml = `<p>Hi${name ? ` ${escapeHtml(name)}` : ''},</p><p>Thanks for getting in touch. I've received your message and will get back to you soon.</p><p>Best,<br>Nelson Ferreira</p>`;
+      const confirmText = `Hi${name ? ` ${name}` : ''},\n\nThanks for getting in touch. I'll text you when I receive your message.\n\nBest,\nNelson Ferreira`;
+      const confirmHtml = `<p>Hi${name ? ` ${escapeHtml(name)}` : ''},</p><p>Thanks for getting in touch. I'll text you when I receive your message.</p><p>Best,<br>Nelson Ferreira</p>`;
       await sendMail({
         to: email,
         subject: "I've received your message — Nelson Ferreira",
