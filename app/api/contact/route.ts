@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
 
     const artistEmail = process.env.ARTIST_EMAIL;
     if (!artistEmail) {
-      console.error('Contact form: ARTIST_EMAIL not set in .env');
+      console.error('Contact form: ARTIST_EMAIL not set in environment (e.g. on Render: Environment → add ARTIST_EMAIL)');
       return NextResponse.json(
-        { error: 'Contact form is not configured. Please email directly using the link above.' },
+        { error: 'Contact form is not configured (ARTIST_EMAIL missing). Please email directly using the link above.' },
         { status: 503 }
       );
     }
