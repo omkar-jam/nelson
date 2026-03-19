@@ -45,6 +45,13 @@ Artist portfolio website with admin, built for deployment on Render with Neon Po
 
    Default admin user: `admin@example.com` / `changeme`. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` when running seed to override.
 
+   **Blog posts** are loaded from `prisma/data/imported-posts.json` (43 posts from [nelson-ferreira.com](https://www.nelson-ferreira.com/essays-on-art), including embedded images via Wix CDN and YouTube iframes). To refresh that file from the live site (needs network):
+
+   ```bash
+   npm run import:blog
+   npx prisma db seed
+   ```
+
 5. **Run**
 
    ```bash
