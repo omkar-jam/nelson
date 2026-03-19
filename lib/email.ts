@@ -1,24 +1,31 @@
 /**
- * Email sending via Resend (HTTP API). Works on Render and other hosts that block SMTP.
- * Set RESEND_API_KEY and EMAIL_FROM in environment.
+ * Email sending via Sender.net (HTTP API). Works on Render and other hosts that block SMTP.
+ * Set SENDER_API_KEY and EMAIL_FROM in environment.
  */
 
-const RESEND_API = 'https://api.resend.com/emails';
+const SENDER_API = 'https://api.sender.net/v2/message/send';
 
-function getFrom(): string {
-  const from = process.env.EMAIL_FROM || process.env.RESEND_FROM;
+/** Parse "Name <email@domain.com>" or plain "email@domain.com" into {name, email}. */
+function parseAddress(address: string): { email: string; name: string } {
+  const match = address.match(/^(.+?)\s*<([^>]+)>$/);
+  if (match) return { name: match[1].trim(), email: match[2].trim() };
+  return { name: '', email: address.trim() };
+}
+
+function getFrom(): { email: string; name: string } {
+  const from = process.env.EMAIL_FROM;
   if (!from) {
     throw new Error(
-      'Email not configured: set EMAIL_FROM (e.g. "Nelson Ferreira <onboarding@resend.dev>") in .env'
+      'Email not configured: set EMAIL_FROM (e.g. "Nelson Ferreira <hello@yourdomain.com>") in .env'
     );
   }
-  return from;
+  return parseAddress(from);
 }
 
 function getApiKey(): string {
-  const key = process.env.RESEND_API_KEY;
+  const key = process.env.SENDER_API_KEY;
   if (!key) {
-    throw new Error('Email not configured: set RESEND_API_KEY in .env (get one at resend.com)');
+    throw new Error('Email not configured: set SENDER_API_KEY in .env (get one at sender.net)');
   }
   return key;
 }
@@ -33,10 +40,11 @@ export type SendMailOptions = {
 
 export async function sendMail(options: SendMailOptions): Promise<void> {
   const apiKey = getApiKey();
-  const from = options.from || getFrom();
+  const from = options.from ? parseAddress(options.from) : getFrom();
   const html = options.html ?? options.text.replace(/\n/g, '<br>\n');
+  const to = parseAddress(options.to);
 
-  const res = await fetch(RESEND_API, {
+  const res = await fetch(SENDER_API, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -44,21 +52,21 @@ export async function sendMail(options: SendMailOptions): Promise<void> {
     },
     body: JSON.stringify({
       from,
-      to: [options.to],
+      to,
       subject: options.subject,
-      text: options.text,
       html,
+      text: options.text,
     }),
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const msg = (err as { message?: string }).message || res.statusText || `HTTP ${res.status}`;
-    throw new Error(`Resend: ${msg}`);
+    throw new Error(`Sender: ${msg}`);
   }
 }
 
-/** Send the same message to many recipients. Sends one-by-one to avoid rate limits and track failures. */
+/** Send the same message to many recipients one-by-one to avoid rate limits and track failures. */
 export async function sendBulk(
   recipients: string[],
   subject: string,
@@ -73,9 +81,10 @@ export async function sendBulk(
   let failed = 0;
   const errors: string[] = [];
 
-  for (const to of recipients) {
+  for (const recipient of recipients) {
     try {
-      const res = await fetch(RESEND_API, {
+      const to = parseAddress(recipient);
+      const res = await fetch(SENDER_API, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,10 +92,10 @@ export async function sendBulk(
         },
         body: JSON.stringify({
           from,
-          to: [to],
+          to,
           subject,
-          text,
           html: htmlBody,
+          text,
         }),
       });
 
@@ -99,7 +108,7 @@ export async function sendBulk(
     } catch (err) {
       failed++;
       const msg = err instanceof Error ? err.message : String(err);
-      errors.push(`${to}: ${msg}`);
+      errors.push(`${recipient}: ${msg}`);
     }
   }
 

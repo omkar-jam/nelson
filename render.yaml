@@ -40,8 +40,8 @@ services:
       # Contact form + mailing list notifications
       - key: ARTIST_EMAIL
         sync: false
-      # Resend (replaces SMTP; works on Render)
-      - key: RESEND_API_KEY
+      # Sender.net (replaces SMTP; works on Render)
+      - key: SENDER_API_KEY
         sync: false
       - key: EMAIL_FROM
         sync: false
