@@ -5,10 +5,47 @@ import 'server-only';
  * `data-pin-media`. Inline `position:absolute` + 100% sizing then blows up the thumbnail on our layout.
  * This normalizes images for display on our site.
  */
+/**
+ * Wix wraps content in <div class="wnwZD" style="--ricos-...var(--textParagraphColor-rgb)...">
+ * Those variables only exist on Wix; without them, typography/colors fall apart. Strip the style
+ * so our `.imported-blog-content` rules apply.
+ */
+function stripWixRicosRootStyle(html: string): string {
+  let out = '';
+  let last = 0;
+  let pos = 0;
+  const needle = 'class="wnwZD"';
+  while ((pos = html.indexOf(needle, last)) !== -1) {
+    const open = html.lastIndexOf('<div', pos);
+    if (open === -1) {
+      last = pos + needle.length;
+      continue;
+    }
+    if (open < last) {
+      last = pos + 1;
+      continue;
+    }
+    const gt = html.indexOf('>', pos);
+    if (gt === -1) break;
+    out += html.slice(last, open);
+    let tag = html.slice(open, gt + 1);
+    tag = tag.replace(/\sstyle="[^"]*"/i, '');
+    if (!tag.includes('imported-ricos-root')) {
+      tag = tag.replace('class="wnwZD"', 'class="wnwZD imported-ricos-root"');
+    }
+    out += tag;
+    last = gt + 1;
+  }
+  out += html.slice(last);
+  return out;
+}
+
 export function fixImportedWixBlogHtml(html: string): string {
   if (!html) return html;
 
-  let out = html
+  let out = stripWixRicosRootStyle(html);
+
+  out = out
     .replace(/<wow-image[^>]*>/gi, '<div class="imported-wix-image">')
     .replace(/<\/wow-image>/gi, '</div>')
     /* Wix “expand” control — not wired on our site */

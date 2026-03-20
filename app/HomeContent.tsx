@@ -503,8 +503,26 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
           {/* Featured videos from YouTube channel */}
           <div className="mt-16 sm:mt-24">
             <ScrollReveal once={false} variant="fade" className="text-center">
-              <h3 className="font-display text-display-sm font-light text-gleam sm:text-display-md">From the channel</h3>
-              <p className="mt-1 font-body text-body text-night-soft">Watch more on YouTube</p>
+              <h3 className="font-display text-display-sm font-light text-gleam sm:text-display-md">
+                <a
+                  href={YOUTUBE_CHANNEL_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-gleam-bright"
+                >
+                  From the channel
+                </a>
+              </h3>
+              <p className="mt-1 font-body text-body text-night-soft">
+                <a
+                  href={YOUTUBE_CHANNEL_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-gleam"
+                >
+                  Watch more on YouTube
+                </a>
+              </p>
               {FEATURED_YOUTUBE_VIDEOS.length > 0 ? (
                 <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:gap-10">
                   {FEATURED_YOUTUBE_VIDEOS.map((video) => (

@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+
+const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
 type Page = { id: string; slug: string; title: string; content: string };
 
@@ -25,13 +28,13 @@ export default function PageEditForm({ page }: { page: Page }) {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? 'Failed to save');
+        setError(data.error ?? 'Failed to save. Please try again.');
         return;
       }
       router.push('/admin/pages');
       router.refresh();
     } catch {
-      setError('Request failed');
+      setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -43,44 +46,61 @@ export default function PageEditForm({ page }: { page: Page }) {
         ← Pages
       </Link>
       <h1 className="mt-4 font-display text-display-md font-light text-paper sm:text-display-lg">
-        Edit: {page.slug}
+        Edit: {page.title}
       </h1>
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+
+      <form onSubmit={handleSubmit} className="mt-8 space-y-8">
+        {/* Page title */}
         <div>
-          <span className="block font-body text-body-sm text-plati-muted">Slug</span>
-          <p className="mt-1 font-body text-paper">{page.slug}</p>
-        </div>
-        <div>
-          <label htmlFor="title" className="block font-body text-body-sm text-plati-soft">Title</label>
+          <label htmlFor="title" className="block font-body text-body-sm font-medium text-plati-soft">
+            Page title <span className="text-red-400">*</span>
+          </label>
           <input
             id="title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="mt-1 w-full border border-plati-border bg-plati px-3 py-2 font-body text-paper focus:border-gleam focus:outline-none"
+            className="mt-2 w-full border border-plati-border bg-plati px-3 py-2.5 font-body text-paper placeholder:text-plati-muted focus:border-gleam focus:outline-none"
           />
         </div>
+
+        {/* Content editor */}
         <div>
-          <label htmlFor="content" className="block font-body text-body-sm text-plati-soft">Content</label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={14}
-            className="mt-1 w-full border border-plati-border bg-plati px-3 py-2 font-body text-paper focus:border-gleam focus:outline-none"
-          />
+          <label className="block font-body text-body-sm font-medium text-plati-soft">
+            Page content
+          </label>
+          <p className="mt-0.5 font-body text-caption text-plati-muted">
+            Use the toolbar to format text — bold, headings, bullet points, links, etc.
+          </p>
+          <div className="mt-2">
+            <RichTextEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Write your page content here…"
+              minHeight="18rem"
+            />
+          </div>
         </div>
-        {error && <p className="font-body text-body-sm text-red-400">{error}</p>}
+
+        {error && (
+          <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-body-sm text-red-400">
+            {error}
+          </p>
+        )}
+
         <div className="flex gap-4">
           <button
             type="submit"
             disabled={loading}
-            className="border border-gleam bg-gleam/10 px-4 py-2 font-body text-body-sm uppercase tracking-widest text-gleam transition hover:bg-gleam/20 disabled:opacity-50"
+            className="border border-gleam bg-gleam/10 px-6 py-2.5 font-body text-body-sm uppercase tracking-widest text-gleam transition hover:bg-gleam/20 disabled:opacity-50"
           >
             {loading ? 'Saving…' : 'Save'}
           </button>
-          <Link href="/admin/pages" className="border border-plati-border px-4 py-2 font-body text-body-sm text-plati-soft transition hover:text-gleam">
+          <Link
+            href="/admin/pages"
+            className="border border-plati-border px-6 py-2.5 font-body text-body-sm text-plati-soft transition hover:text-gleam"
+          >
             Cancel
           </Link>
         </div>

@@ -26,7 +26,7 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
         </div>
       </nav>
-      <article className="mx-auto max-w-2xl px-6 py-16">
+      <article className="mx-auto max-w-3xl px-6 py-16 text-paper">
         <Link href="/blog" className="text-body-sm text-plati-soft transition hover:text-gleam">
           ← Blog
         </Link>
@@ -46,7 +46,7 @@ export default async function BlogPostPage({ params }: Props) {
           </time>
         )}
         <div
-          className="imported-blog-content prose prose-invert mt-8 max-w-none text-night-soft prose-p:font-body prose-p:text-body prose-a:text-gleam prose-a:no-underline hover:prose-a:underline prose-img:max-w-full prose-img:rounded-sm prose-figure:mx-0 [&_iframe]:max-w-full [&_video]:max-w-full"
+          className="imported-blog-content mt-10 max-w-none"
           dangerouslySetInnerHTML={{ __html: post.body }}
         />
       </article>
