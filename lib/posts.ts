@@ -1,4 +1,5 @@
 import 'server-only';
+import { fixImportedWixBlogHtml } from './blog-html';
 import { prisma } from './prisma';
 
 export async function getPublishedPosts() {
@@ -10,9 +11,11 @@ export async function getPublishedPosts() {
 }
 
 export async function getPostBySlug(slug: string) {
-  return prisma.post.findFirst({
+  const post = await prisma.post.findFirst({
     where: { slug, published: true },
   });
+  if (!post) return null;
+  return { ...post, body: fixImportedWixBlogHtml(post.body) };
 }
 
 export async function getAllPostsForAdmin() {

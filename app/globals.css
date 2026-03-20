@@ -61,6 +61,24 @@
   }
 }
 
+/* Migrated Wix blog: image wrappers + LQIP fixes (see lib/blog-html.ts) */
+.imported-blog-content .imported-wix-image {
+  display: block;
+  max-width: 100%;
+  margin: 1.25rem 0;
+  position: relative;
+}
+
+.imported-blog-content .imported-wix-image img {
+  position: static !important;
+  width: auto !important;
+  max-width: 100% !important;
+  height: auto !important;
+  object-fit: contain !important;
+  left: auto !important;
+  top: auto !important;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

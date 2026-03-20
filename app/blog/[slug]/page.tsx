@@ -46,7 +46,7 @@ export default async function BlogPostPage({ params }: Props) {
           </time>
         )}
         <div
-          className="prose prose-invert mt-8 max-w-none text-night-soft prose-p:font-body prose-p:text-body prose-a:text-gleam prose-a:no-underline hover:prose-a:underline prose-img:max-w-full prose-img:rounded-sm prose-figure:mx-0 [&_iframe]:max-w-full [&_video]:max-w-full"
+          className="imported-blog-content prose prose-invert mt-8 max-w-none text-night-soft prose-p:font-body prose-p:text-body prose-a:text-gleam prose-a:no-underline hover:prose-a:underline prose-img:max-w-full prose-img:rounded-sm prose-figure:mx-0 [&_iframe]:max-w-full [&_video]:max-w-full"
           dangerouslySetInnerHTML={{ __html: post.body }}
         />
       </article>
