@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { SiteNav } from '@/components/SiteNav';
 import { getPublishedPosts } from '@/lib/posts';
 
 export const dynamic = 'force-dynamic';
@@ -7,20 +8,8 @@ export default async function BlogPage() {
   const posts = await getPublishedPosts();
 
   return (
-    <main className="min-h-screen bg-plati-dark font-body text-paper">
-      <nav className="border-b border-plati-border px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Link href="/" className="text-xl font-semibold text-paper">
-            Nelson Ferreira
-          </Link>
-          <div className="flex gap-6 text-plati-soft">
-            <Link href="/gallery" className="hover:text-gleam">Gallery</Link>
-            <Link href="/about" className="hover:text-gleam">About</Link>
-            <Link href="/contact" className="hover:text-gleam">Contact</Link>
-            <Link href="/blog" className="hover:text-gleam">Blog</Link>
-          </div>
-        </div>
-      </nav>
+    <main className="min-h-screen bg-plati-dark pt-24 font-body text-paper sm:pt-28">
+      <SiteNav />
       <div className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="font-display text-display-lg font-light text-paper">Blog</h1>
         <p className="mt-2 text-body text-plati-soft">

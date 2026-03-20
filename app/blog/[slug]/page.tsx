@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { SiteNav } from '@/components/SiteNav';
 import { getPostBySlug } from '@/lib/posts';
 
 export const dynamic = 'force-dynamic';
@@ -12,20 +13,8 @@ export default async function BlogPostPage({ params }: Props) {
   if (!post) notFound();
 
   return (
-    <main className="min-h-screen bg-plati-dark font-body text-paper">
-      <nav className="border-b border-plati-border px-6 py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <Link href="/" className="text-xl font-semibold text-paper">
-            Nelson Ferreira
-          </Link>
-          <div className="flex gap-6 text-plati-soft">
-            <Link href="/gallery" className="hover:text-gleam">Gallery</Link>
-            <Link href="/about" className="hover:text-gleam">About</Link>
-            <Link href="/contact" className="hover:text-gleam">Contact</Link>
-            <Link href="/blog" className="hover:text-gleam">Blog</Link>
-          </div>
-        </div>
-      </nav>
+    <main className="min-h-screen bg-plati-dark pt-24 font-body text-paper sm:pt-28">
+      <SiteNav />
       <article className="mx-auto max-w-3xl px-6 py-16 text-paper">
         <Link href="/blog" className="text-body-sm text-plati-soft transition hover:text-gleam">
           ← Blog

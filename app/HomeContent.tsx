@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { HeroParallax } from '@/components/HeroParallax';
+import { SiteNav } from '@/components/SiteNav';
 
 const BLOGS = [
   {
@@ -133,21 +134,10 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
   const blogsToShow = (blogPosts && blogPosts.length > 0)
     ? blogPosts.map((p) => ({ id: p.id, title: p.title, excerpt: p.excerpt, url: `/blog/${p.slug}` }))
     : BLOGS;
-  const [menuOpen, setMenuOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+44');
   const [submitted, setSubmitted] = useState(false);
-
-  // Close menu on route change / scroll
-  useEffect(() => {
-    if (!menuOpen) return;
-    const close = () => setMenuOpen(false);
-    window.addEventListener('scroll', close, { passive: true });
-    return () => window.removeEventListener('scroll', close);
-  }, [menuOpen]);
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -222,104 +212,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
 
   return (
     <main className="min-h-screen w-full max-w-[100vw] overflow-x-hidden">
-      <motion.nav
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 80, damping: 22, delay: 0.2 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-plati-dark/95 backdrop-blur-sm"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      >
-        {/* Top bar */}
-        <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 md:px-12 md:py-4">
-          <div className="min-w-0 flex-1">
-            <span className="text-shimmer font-display text-display-sm font-medium tracking-wide sm:text-display-md">Nelson Ferreira</span>
-            <span className="mt-0.5 block truncate font-body text-[0.65rem] uppercase leading-tight tracking-[0.1em] text-plati-soft sm:mt-1 sm:text-caption sm:tracking-[0.15em]">
-              Visual Artist · Art Teacher · PlatiGleam
-            </span>
-          </div>
-
-          {/* Desktop links */}
-          <div className="hidden items-center gap-6 sm:flex md:gap-8">
-            {[
-              { label: 'Artwork', href: '#works' },
-              { label: 'Blog', href: '/blog' },
-              { label: 'Contact', href: '#contact' },
-            ].map(({ label, href }) => (
-              <a
-                key={label}
-                href={href}
-                className="group relative font-body text-body-sm uppercase tracking-widest text-plati-soft transition-colors hover:text-gleam"
-              >
-                {label}
-                <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-gleam/60 transition-all duration-300 group-hover:w-full" />
-              </a>
-            ))}
-          </div>
-
-          {/* Burger button — mobile only */}
-          <button
-            type="button"
-            onClick={() => setMenuOpen((o) => !o)}
-            className="flex h-10 w-10 shrink-0 flex-col items-center justify-center gap-[5px] sm:hidden"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={menuOpen}
-          >
-            <motion.span
-              animate={menuOpen ? { rotate: 45, y: 7 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.22 }}
-              className="block h-[1.5px] w-5 bg-plati-soft"
-            />
-            <motion.span
-              animate={menuOpen ? { opacity: 0, scaleX: 0 } : { opacity: 1, scaleX: 1 }}
-              transition={{ duration: 0.18 }}
-              className="block h-[1.5px] w-5 bg-plati-soft"
-            />
-            <motion.span
-              animate={menuOpen ? { rotate: -45, y: -7 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.22 }}
-              className="block h-[1.5px] w-5 bg-plati-soft"
-            />
-          </button>
-        </div>
-
-        {/* Scroll progress bar */}
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-px bg-gleam origin-left"
-          style={{ scaleX }}
-          aria-hidden
-        />
-
-        {/* Mobile dropdown */}
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              key="mobile-menu"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: 'easeInOut' }}
-              className="overflow-hidden border-t border-plati-border bg-plati-dark/98 sm:hidden"
-            >
-              <div className="flex flex-col px-6 pb-4 pt-2" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
-                {[
-                  { label: 'Artwork', href: '#works' },
-                  { label: 'Blog', href: '/blog' },
-                  { label: 'Contact', href: '#contact' },
-                ].map(({ label, href }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    onClick={() => setMenuOpen(false)}
-                    className="border-b border-plati-border/50 py-4 font-body text-body uppercase tracking-widest text-plati-soft transition hover:text-gleam active:text-gleam"
-                  >
-                    {label}
-                  </a>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.nav>
+      <SiteNav />
 
       <HeroParallax videoSrc={heroVideoUrl}>
         <div className="relative z-20 mt-auto w-full px-4 pb-5 pt-24 sm:pt-28 sm:pb-6 sm:px-6 md:pb-8" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
@@ -348,11 +241,11 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                   className="min-h-[44px] w-full rounded-none border border-plati-border bg-plati/90 px-3 py-2.5 font-body text-base text-paper placeholder:text-plati-muted focus:border-gleam focus:outline-none"
                   required
                 />
-                <div className="flex flex-nowrap overflow-hidden rounded-none border border-plati-border bg-plati/90 focus-within:border-gleam">
+                <div className="flex flex-col overflow-hidden rounded-none border border-plati-border bg-plati/90 focus-within:border-gleam sm:flex-row sm:flex-nowrap">
                   <select
                     value={countryCode}
                     onChange={(e) => setCountryCode(e.target.value)}
-                    className="h-[44px] w-[52px] shrink-0 cursor-pointer border-0 border-r border-plati-border bg-transparent py-0 pl-1.5 pr-1 text-center font-body text-sm text-paper focus:border-gleam focus:outline-none focus:ring-0 [&>option]:bg-plati-dark"
+                    className="h-[44px] w-full min-w-0 cursor-pointer border-0 border-b border-plati-border bg-transparent py-0 pl-3 pr-8 text-left font-body text-base text-paper focus:border-gleam focus:outline-none focus:ring-0 sm:w-auto sm:min-w-[12rem] sm:max-w-[min(100%,14rem)] sm:shrink-0 sm:border-b-0 sm:border-r sm:pr-3 md:min-w-[13.5rem] [&>option]:bg-plati-dark [&>option]:text-paper"
                     aria-label="Country code"
                   >
                     {PHONE_COUNTRY_CODES.map(({ value, label }) => (
