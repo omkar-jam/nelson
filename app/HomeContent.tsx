@@ -182,7 +182,10 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
       <SiteNav />
 
       <HeroParallax videoSrc={heroVideoUrl}>
-        <div className="relative z-20 mt-auto w-full px-4 pb-5 pt-24 sm:pt-28 sm:pb-6 sm:px-6 md:pb-8" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+        <div
+          className="relative z-20 mt-auto w-full px-4 pb-5 pt-24 max-md:mb-10 sm:pt-28 sm:pb-6 sm:px-6 md:mb-0 md:pb-8"
+          style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
+        >
           <motion.form
             onSubmit={handleMailingList}
             initial={{ opacity: 0, y: 8 }}
