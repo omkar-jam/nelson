@@ -5,6 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { HeroParallax } from '@/components/HeroParallax';
 import { SiteNav } from '@/components/SiteNav';
+import {
+  DEFAULT_PHONE_COUNTRY_ISO,
+  PHONE_COUNTRY_CODES,
+  dialCodeForIso,
+} from '@/lib/phone-country-codes';
 
 const BLOGS = [
   {
@@ -34,44 +39,6 @@ const STUDIO = {
 };
 const CONTACT_EMAIL = 'nelson.ferreira.uk@gmail.com';
 const CONTACT_PHONE = '+447950930301';
-
-const PHONE_COUNTRY_CODES = [
-  { value: '+44', label: '+44 UK' },
-  { value: '+1', label: '+1 US/CA' },
-  { value: '+91', label: '+91 India' },
-  { value: '+353', label: '+353 Ireland' },
-  { value: '+351', label: '+351 Portugal' },
-  { value: '+33', label: '+33 France' },
-  { value: '+49', label: '+49 Germany' },
-  { value: '+39', label: '+39 Italy' },
-  { value: '+34', label: '+34 Spain' },
-  { value: '+61', label: '+61 Australia' },
-  { value: '+64', label: '+64 NZ' },
-  { value: '+81', label: '+81 Japan' },
-  { value: '+86', label: '+86 China' },
-  { value: '+55', label: '+55 Brazil' },
-  { value: '+27', label: '+27 South Africa' },
-  { value: '+31', label: '+31 Netherlands' },
-  { value: '+32', label: '+32 Belgium' },
-  { value: '+41', label: '+41 Switzerland' },
-  { value: '+43', label: '+43 Austria' },
-  { value: '+46', label: '+46 Sweden' },
-  { value: '+47', label: '+47 Norway' },
-  { value: '+45', label: '+45 Denmark' },
-  { value: '+48', label: '+48 Poland' },
-  { value: '+358', label: '+358 Finland' },
-  { value: '+971', label: '+971 UAE' },
-  { value: '+966', label: '+966 Saudi Arabia' },
-  { value: '+62', label: '+62 Indonesia' },
-  { value: '+65', label: '+65 Singapore' },
-  { value: '+60', label: '+60 Malaysia' },
-  { value: '+66', label: '+66 Thailand' },
-  { value: '+84', label: '+84 Vietnam' },
-  { value: '+63', label: '+63 Philippines' },
-  { value: '+92', label: '+92 Pakistan' },
-  { value: '+88', label: '+88 Bangladesh' },
-  { value: '+977', label: '+977 Nepal' },
-];
 
 const SOCIAL = [
   { name: 'LinkedIn', href: 'https://www.linkedin.com/in/nelson-ferreira-visual-artist/', icon: 'linkedin' },
@@ -136,7 +103,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
     : BLOGS;
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [countryCode, setCountryCode] = useState('+44');
+  const [phoneCountryIso, setPhoneCountryIso] = useState(DEFAULT_PHONE_COUNTRY_ISO);
   const [submitted, setSubmitted] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -162,7 +129,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
         body: JSON.stringify({
           email: email.trim(),
           phone: phone.trim() || undefined,
-          countryCode: countryCode || '+44',
+          countryCode: dialCodeForIso(phoneCountryIso),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -243,13 +210,13 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                 />
                 <div className="flex flex-col overflow-hidden rounded-none border border-plati-border bg-plati/90 focus-within:border-gleam sm:flex-row sm:flex-nowrap">
                   <select
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
+                    value={phoneCountryIso}
+                    onChange={(e) => setPhoneCountryIso(e.target.value)}
                     className="h-[44px] w-full min-w-0 cursor-pointer border-0 border-b border-plati-border bg-transparent py-0 pl-3 pr-8 text-left font-body text-base text-paper focus:border-gleam focus:outline-none focus:ring-0 sm:w-auto sm:min-w-[12rem] sm:max-w-[min(100%,14rem)] sm:shrink-0 sm:border-b-0 sm:border-r sm:pr-3 md:min-w-[13.5rem] [&>option]:bg-plati-dark [&>option]:text-paper"
                     aria-label="Country code"
                   >
-                    {PHONE_COUNTRY_CODES.map(({ value, label }) => (
-                      <option key={value} value={value}>
+                    {PHONE_COUNTRY_CODES.map(({ value, label, iso }) => (
+                      <option key={iso} value={iso}>
                         {label}
                       </option>
                     ))}

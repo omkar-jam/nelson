@@ -48,11 +48,12 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
         style={{ scale }}
       >
         {embedUrl ? (
-          <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden bg-plati-dark">
+            {/* Mobile: fit full 16:9 frame (no crop). md+: cover viewport like object-cover. */}
             <iframe
               title="Hero video"
               src={embedUrl}
-              className="absolute left-1/2 top-1/2 h-[56.25vw] min-h-[100dvh] w-[177.78vh] min-w-[100vw] -translate-x-1/2 -translate-y-1/2 [border:0]"
+              className="absolute left-1/2 top-1/2 h-[min(56.25vw,100dvh)] w-[min(100vw,177.78vh)] -translate-x-1/2 -translate-y-1/2 border-0 md:h-[56.25vw] md:min-h-[100dvh] md:w-[177.78vh] md:min-w-[100vw]"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -63,7 +64,7 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full bg-plati-dark object-contain object-center md:object-cover"
             src={videoSrc}
           />
         )}
