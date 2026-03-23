@@ -5,6 +5,10 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 
 const YOUTUBE_PREFIX = 'youtube:';
 
+/** Space below fixed nav on small screens (matches SiteNav block + safe area). */
+const MOBILE_NAV_OFFSET_CLASS =
+  'pt-[calc(env(safe-area-inset-top)+5.25rem)] md:pt-0';
+
 function getYouTubeId(videoSrc: string): string | null {
   if (videoSrc.startsWith(YOUTUBE_PREFIX)) return videoSrc.slice(YOUTUBE_PREFIX.length);
   try {
@@ -41,19 +45,18 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-screen min-h-[100dvh] flex-col"
+      className={`relative flex w-full flex-col md:min-h-[100dvh] ${MOBILE_NAV_OFFSET_CLASS}`}
     >
       <motion.div
-        className="absolute inset-0 overflow-hidden"
+        className="relative z-0 w-full shrink-0 overflow-hidden bg-plati-dark aspect-video md:absolute md:inset-0 md:aspect-auto md:min-h-[100dvh]"
         style={{ scale }}
       >
         {embedUrl ? (
           <div className="absolute inset-0 overflow-hidden bg-plati-dark">
-            {/* Mobile: fit full 16:9 frame (no crop). md+: cover viewport like object-cover. */}
             <iframe
               title="Hero video"
               src={embedUrl}
-              className="absolute left-1/2 top-[44%] h-[min(56.25vw,100dvh)] w-[min(100vw,177.78vh)] -translate-x-1/2 -translate-y-1/2 border-0 md:top-1/2 md:h-[56.25vw] md:min-h-[100dvh] md:w-[177.78vh] md:min-w-[100vw]"
+              className="absolute border-0 max-md:inset-0 max-md:h-full max-md:w-full md:inset-auto md:left-1/2 md:top-1/2 md:h-[56.25vw] md:min-h-[100dvh] md:w-[177.78vh] md:min-w-[100vw] md:-translate-x-1/2 md:-translate-y-1/2"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -64,21 +67,20 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full bg-plati-dark object-contain object-[center_42%] md:object-cover md:object-center"
+            className="absolute inset-0 h-full w-full bg-plati-dark object-contain object-center md:object-cover"
             src={videoSrc}
           />
         )}
+        <div className="pointer-events-none absolute inset-0 grain-overlay" aria-hidden />
+        {embedUrl && (
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-plati-dark to-transparent md:h-28 lg:h-32"
+            aria-hidden
+          />
+        )}
       </motion.div>
-      <div className="absolute inset-0 grain-overlay" aria-hidden />
-      {/* Hide YouTube player title overlay in top strip */}
-      {embedUrl && (
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-plati-dark to-transparent sm:h-32"
-          aria-hidden
-        />
-      )}
       <motion.div
-        className="absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-plati-dark to-transparent pointer-events-none"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden h-40 bg-gradient-to-t from-plati-dark to-transparent md:block"
         style={{ opacity: gradientOpacity }}
         aria-hidden
       />
