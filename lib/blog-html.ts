@@ -44,6 +44,7 @@ export function fixImportedWixBlogHtml(html: string): string {
   if (!html) return html;
 
   let out = stripWixRicosRootStyle(html);
+  out = flattenWixProGalleries(out);
 
   out = out
     .replace(/<wow-image[^>]*>/gi, '<div class="imported-wix-image">')
@@ -88,6 +89,98 @@ export function fixImportedWixBlogHtml(html: string): string {
   });
 
   return out;
+}
+
+/**
+ * Wix Pro Gallery SSR hides most slides (`display:none`) and relies on JS. Replace each gallery
+ * (+ sibling layout-fixer block) with a simple responsive grid of images parsed from the markup.
+ */
+function flattenWixProGalleries(html: string): string {
+  const openRe = /<div id="pro-gallery-[a-z0-9]+-not-scoped" class="pro-gallery">/gi;
+  let out = html;
+  let guard = 0;
+  while (guard++ < 50) {
+    openRe.lastIndex = 0;
+    const m = openRe.exec(out);
+    if (!m) break;
+    const start = m.index;
+    const endGallery = findClosingDivIndex(out, start);
+    if (endGallery === -1) break;
+    let end = endGallery;
+    const after = out.slice(end);
+    if (after.startsWith('<div id="layout-fixer-')) {
+      const lfEnd = findClosingDivIndex(out, end);
+      if (lfEnd !== -1) end = lfEnd;
+    }
+    const segment = out.slice(start, end);
+    const urls = extractBestWixGalleryUrls(segment);
+    const replacement =
+      urls.length > 0
+        ? `<div class="imported-wix-gallery-replacement" data-was-pro-gallery="true"><div class="imported-wix-gallery-grid">${urls
+            .map(
+              (u) =>
+                `<figure class="imported-wix-image"><img src="${escapeHtmlAttr(upscaleWixFillUrl(u))}" alt="" loading="lazy" /></figure>`
+            )
+            .join('')}</div></div>`
+        : '';
+    out = out.slice(0, start) + replacement + out.slice(end);
+  }
+  return out;
+}
+
+function findClosingDivIndex(html: string, openTagStart: number): number {
+  const openTagEnd = html.indexOf('>', openTagStart);
+  if (openTagEnd === -1) return -1;
+  let depth = 1;
+  let i = openTagEnd + 1;
+  while (i < html.length) {
+    const closeIdx = html.indexOf('</div>', i);
+    const openIdx = html.indexOf('<div', i);
+    if (closeIdx === -1) return -1;
+    const nextOpen = openIdx === -1 ? Infinity : openIdx;
+    if (nextOpen < closeIdx) {
+      depth++;
+      i = nextOpen + 4;
+    } else {
+      depth--;
+      if (depth === 0) return closeIdx + 6;
+      i = closeIdx + 6;
+    }
+  }
+  return -1;
+}
+
+function extractBestWixGalleryUrls(segment: string): string[] {
+  const byId = new Map<string, { url: string; w: number }>();
+  const consider = (raw: string) => {
+    let url = raw.trim().replace(/^url\(['"]?|['"]?\)$/i, '');
+    if (!url.includes('static.wixstatic.com')) return;
+    const idm = url.match(/(a50b1d_[a-z0-9]+~mv2\.[a-z]+)/i);
+    if (!idm) return;
+    const id = idm[1];
+    const wm = url.match(/\/v1\/fill\/w_(\d+),h_(\d+)/i);
+    const w = wm ? parseInt(wm[1], 10) : 0;
+    const prev = byId.get(id);
+    if (!prev || w > prev.w) {
+      byId.set(id, { url, w });
+    }
+  };
+  let m: RegExpExecArray | null;
+  const imgRe = /data-hook="gallery-item-image-img"[^>]*src="([^"]+)"/gi;
+  while ((m = imgRe.exec(segment))) {
+    consider(m[1]);
+  }
+  const bgRe = /background-image:url\(([^)]+)\)/gi;
+  while ((m = bgRe.exec(segment))) {
+    consider(m[1]);
+  }
+  return Array.from(byId.values())
+    .sort((a, b) => b.w - a.w)
+    .map((x) => x.url);
+}
+
+function escapeHtmlAttr(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
 function fixWixImageUrl(url: string): string {

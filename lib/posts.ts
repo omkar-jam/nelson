@@ -1,4 +1,5 @@
 import 'server-only';
+import { applyBlogClientPatches } from './blog-patches';
 import { fixImportedWixBlogHtml } from './blog-html';
 import { prisma } from './prisma';
 
@@ -15,7 +16,7 @@ export async function getPostBySlug(slug: string) {
     where: { slug, published: true },
   });
   if (!post) return null;
-  return { ...post, body: fixImportedWixBlogHtml(post.body) };
+  return { ...post, body: applyBlogClientPatches(post.slug, fixImportedWixBlogHtml(post.body)) };
 }
 
 export async function getAllPostsForAdmin() {

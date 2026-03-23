@@ -52,6 +52,15 @@ Artist portfolio website with admin, built for deployment on Render with Neon Po
    npx prisma db seed
    ```
 
+   Post-import display fixes (videos, Pro Gallery → image grid, Borobudur press-line layout, etc.) are applied at render time in `lib/blog-html.ts` and `lib/blog-patches.ts` — no re-import needed after pulling updates.
+
+   If the database has **duplicate posts** with the same title (e.g. an empty row and a full import), run a dry run then apply:
+
+   ```bash
+   node scripts/dedupe-blog-posts-by-title.mjs
+   node scripts/dedupe-blog-posts-by-title.mjs --apply
+   ```
+
 5. **Run**
 
    ```bash
