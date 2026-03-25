@@ -7,6 +7,12 @@ import dynamic from 'next/dynamic';
 
 const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
+function dateToDatetimeLocalValue(d: Date): string {
+  const x = new Date(d);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}T${pad(x.getHours())}:${pad(x.getMinutes())}`;
+}
+
 type Post = {
   id: string;
   title: string;
@@ -23,6 +29,11 @@ export default function PostEditForm({ post }: { post: Post }) {
   const [excerpt, setExcerpt] = useState(post.excerpt);
   const [body, setBody] = useState(post.body);
   const [published, setPublished] = useState(post.published);
+  const [publishedAtLocal, setPublishedAtLocal] = useState(() =>
+    post.publishedAt
+      ? dateToDatetimeLocalValue(new Date(post.publishedAt))
+      : dateToDatetimeLocalValue(new Date()),
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -36,7 +47,13 @@ export default function PostEditForm({ post }: { post: Post }) {
       const res = await fetch(`/api/admin/posts/${post.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, excerpt, body, published }),
+        body: JSON.stringify({
+          title,
+          excerpt,
+          body,
+          published,
+          ...(published ? { publishedAt: new Date(publishedAtLocal).toISOString() } : {}),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -79,11 +96,9 @@ export default function PostEditForm({ post }: { post: Post }) {
       <h1 className="mt-4 font-display text-display-md font-light text-paper sm:text-display-lg">
         Edit post
       </h1>
-      {post.publishedAt && (
-        <p className="mt-1 font-body text-caption text-plati-muted">
-          Published {new Date(post.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
-      )}
+      <p className="mt-1 font-body text-caption text-plati-muted">
+        Set the public date shown on the blog below when the post is published.
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-8">
 
@@ -153,6 +168,24 @@ export default function PostEditForm({ post }: { post: Post }) {
             {published ? 'Published (visible on site)' : 'Draft (not visible yet)'}
           </span>
         </label>
+
+        {published && (
+          <div>
+            <label htmlFor="publishedAt" className="block font-body text-body-sm font-medium text-plati-soft">
+              Published date &amp; time
+            </label>
+            <p className="mt-0.5 font-body text-caption text-plati-muted">
+              Shown on the post and used for ordering. Uses your computer&apos;s local timezone.
+            </p>
+            <input
+              id="publishedAt"
+              type="datetime-local"
+              value={publishedAtLocal}
+              onChange={(e) => setPublishedAtLocal(e.target.value)}
+              className="mt-2 w-full max-w-md border border-plati-border bg-plati px-3 py-2.5 font-body text-paper focus:border-gleam focus:outline-none"
+            />
+          </div>
+        )}
 
         {error && (
           <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-body-sm text-red-400">

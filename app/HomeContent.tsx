@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { HeroParallax } from '@/components/HeroParallax';
@@ -82,6 +83,8 @@ export type GalleryItem = {
   src: string;
   title: string;
   type: 'video' | 'image' | 'youtube';
+  /** Set for admin artworks; opens `/works/[id]`. Sample embeds omit this. */
+  detailPath?: string | null;
 };
 
 export type BlogPostPreview = {
@@ -311,52 +314,61 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                   className="overflow-hidden"
                 >
                   <motion.div
-                    className="group overflow-hidden border border-night-border bg-night-surface transition-colors duration-500 hover:border-gleam/30"
+                    className="group relative overflow-hidden border border-night-border bg-night-surface transition-colors duration-500 hover:border-gleam/30"
                     whileHover={{ boxShadow: '0 4px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(197,191,180,0.12)' }}
                   >
-                    <div className="aspect-video w-full min-h-[180px] overflow-hidden">
-                      <motion.div
-                        className="h-full w-full"
-                        whileHover={item.type === 'image' ? { scale: 1.04 } : undefined}
-                        transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-                      >
-                        {item.type === 'youtube' ? (
-                          <iframe
-                            title={item.title}
-                            src={`https://www.youtube.com/embed/${item.src.replace(/^youtube:/, '')}?autoplay=1&mute=1&loop=1&playlist=${item.src.replace(/^youtube:/, '')}&rel=0&modestbranding=1`}
-                            className="h-full w-full border-0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        ) : item.type === 'video' ? (
-                          <video
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                            className="h-full w-full object-cover"
-                            src={item.src}
-                          />
-                        ) : (
-                          <img
-                            src={item.src}
-                            alt={item.title}
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        )}
-                      </motion.div>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-night-border px-4 py-3 sm:px-6 sm:py-4">
-                      <p className="font-body text-body text-night-soft line-clamp-2 transition-colors duration-300 group-hover:text-gleam">{item.title}</p>
-                      <motion.span
-                        className="ml-4 shrink-0 text-gleam/0 transition-all duration-300 group-hover:text-gleam/60"
-                        aria-hidden
-                      >
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </motion.span>
+                    {item.detailPath ? (
+                      <Link
+                        href={item.detailPath}
+                        className="absolute inset-0 z-20 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gleam"
+                        aria-label={`Open work: ${item.title}`}
+                      />
+                    ) : null}
+                    <div className={item.detailPath ? 'relative z-0' : undefined}>
+                      <div className="aspect-video w-full min-h-[180px] overflow-hidden">
+                        <motion.div
+                          className="h-full w-full"
+                          whileHover={item.type === 'image' ? { scale: 1.04 } : undefined}
+                          transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
+                        >
+                          {item.type === 'youtube' ? (
+                            <iframe
+                              title={item.title}
+                              src={`https://www.youtube.com/embed/${item.src.replace(/^youtube:/, '')}?autoplay=1&mute=1&loop=1&playlist=${item.src.replace(/^youtube:/, '')}&rel=0&modestbranding=1`}
+                              className="h-full w-full border-0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : item.type === 'video' ? (
+                            <video
+                              autoPlay
+                              muted
+                              loop
+                              playsInline
+                              className="h-full w-full object-cover"
+                              src={item.src}
+                            />
+                          ) : (
+                            <img
+                              src={item.src}
+                              alt={item.title}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                            />
+                          )}
+                        </motion.div>
+                      </div>
+                      <div className="pointer-events-none flex items-center justify-between border-t border-night-border px-4 py-3 sm:px-6 sm:py-4">
+                        <p className="font-body text-body text-night-soft line-clamp-2 transition-colors duration-300 group-hover:text-gleam">{item.title}</p>
+                        <motion.span
+                          className="ml-4 shrink-0 text-gleam/0 transition-all duration-300 group-hover:text-gleam/60"
+                          aria-hidden
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </motion.span>
+                      </div>
                     </div>
                   </motion.div>
                 </ScrollReveal>

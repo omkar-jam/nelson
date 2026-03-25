@@ -3,10 +3,11 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
 type Props = {
   value: string;
@@ -43,6 +44,7 @@ function ToolbarButton({ onClick, active, disabled, title, children }: ToolbarBu
 }
 
 export default function RichTextEditor({ value, onChange, placeholder = 'Start writing…', minHeight = '14rem' }: Props) {
+  const [uploadingImage, setUploadingImage] = useState(false);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -50,6 +52,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
       }),
       Underline,
       Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-gleam underline' } }),
+      Image.configure({ HTMLAttributes: { class: 'max-w-full h-auto my-4 rounded-sm' } }),
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Placeholder.configure({ placeholder }),
     ],
@@ -83,6 +86,39 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     }
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }, [editor]);
+
+  const uploadAndInsertImage = useCallback(async () => {
+    if (!editor || uploadingImage) return;
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = 'image/*';
+    picker.onchange = async () => {
+      const file = picker.files?.[0];
+      if (!file) return;
+      setUploadingImage(true);
+      try {
+        const formData = new FormData();
+        formData.set('file', file);
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+        if (!res.ok) {
+          throw new Error('Image upload failed');
+        }
+        const data = await res.json().catch(() => null) as { url?: string } | null;
+        if (!data?.url) {
+          throw new Error('Image URL missing in upload response');
+        }
+        editor.chain().focus().setImage({ src: data.url, alt: file.name }).run();
+      } catch {
+        window.alert('Image upload failed. Please check Cloudflare upload setup.');
+      } finally {
+        setUploadingImage(false);
+      }
+    };
+    picker.click();
+  }, [editor, uploadingImage]);
 
   if (!editor) return null;
 
@@ -139,6 +175,13 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
         {/* Link */}
         <ToolbarButton onClick={setLink} active={editor.isActive('link')} title="Add link">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </ToolbarButton>
+        <ToolbarButton onClick={uploadAndInsertImage} disabled={uploadingImage} title="Upload image">
+          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <circle cx="9" cy="10" r="1.5" fill="currentColor" />
+            <path d="M21 16l-5-5-7 7" />
+          </svg>
         </ToolbarButton>
 
         <span className="mx-1 h-5 w-px bg-plati-border" />

@@ -22,7 +22,14 @@ export async function PUT(
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { id } = await params;
-  let body: { title?: string; slug?: string; excerpt?: string; body?: string; published?: boolean };
+  let body: {
+    title?: string;
+    slug?: string;
+    excerpt?: string;
+    body?: string;
+    published?: boolean;
+    publishedAt?: string | null;
+  };
   try {
     body = await request.json();
   } catch {
@@ -35,6 +42,9 @@ export async function PUT(
   if (typeof body.excerpt === 'string') data.excerpt = body.excerpt.trim();
   if (typeof body.body === 'string') data.body = body.body;
   if (typeof body.published === 'boolean') data.published = body.published;
+  if (body.publishedAt === null) data.publishedAt = null;
+  else if (typeof body.publishedAt === 'string' && body.publishedAt.trim())
+    data.publishedAt = body.publishedAt.trim();
   const post = await updatePost(id, data);
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   return NextResponse.json(post);

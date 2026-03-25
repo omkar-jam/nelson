@@ -7,12 +7,19 @@ import dynamic from 'next/dynamic';
 
 const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
+function dateToDatetimeLocalValue(d: Date): string {
+  const x = new Date(d);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}T${pad(x.getHours())}:${pad(x.getMinutes())}`;
+}
+
 export default function NewBlogPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [body, setBody] = useState('');
   const [published, setPublished] = useState(false);
+  const [publishedAtLocal, setPublishedAtLocal] = useState(() => dateToDatetimeLocalValue(new Date()));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +32,13 @@ export default function NewBlogPostPage() {
       const res = await fetch('/api/admin/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, excerpt, body, published }),
+        body: JSON.stringify({
+          title,
+          excerpt,
+          body,
+          published,
+          ...(published ? { publishedAt: new Date(publishedAtLocal).toISOString() } : {}),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -119,6 +132,24 @@ export default function NewBlogPostPage() {
             {published ? 'Publish immediately (visible on site)' : 'Save as draft (not visible yet)'}
           </span>
         </label>
+
+        {published && (
+          <div>
+            <label htmlFor="publishedAt" className="block font-body text-body-sm font-medium text-plati-soft">
+              Published date &amp; time
+            </label>
+            <p className="mt-0.5 font-body text-caption text-plati-muted">
+              Defaults to now; change to backdate or schedule display order.
+            </p>
+            <input
+              id="publishedAt"
+              type="datetime-local"
+              value={publishedAtLocal}
+              onChange={(e) => setPublishedAtLocal(e.target.value)}
+              className="mt-2 w-full max-w-md border border-plati-border bg-plati px-3 py-2.5 font-body text-paper focus:border-gleam focus:outline-none"
+            />
+          </div>
+        )}
 
         {error && (
           <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 font-body text-body-sm text-red-400">

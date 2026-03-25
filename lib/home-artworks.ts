@@ -1,8 +1,9 @@
 import 'server-only';
 import { getArtworks } from './artworks';
+import { getHomeGalleryMediaType } from './gallery-media';
 
-const VIDEO_EXTENSIONS = ['.mp4', '.webm', '.mov', '.m4v', '.ogg'];
-const FALLBACK_HERO_VIDEO = 'youtube:nY4LI6zMgxw';
+/** Served from `public/videos/drone-hero.mov` */
+const FALLBACK_HERO_VIDEO = '/videos/drone-hero.mov';
 
 /** YouTube video IDs shown in Works when there are no artworks in the DB */
 const SAMPLE_YOUTUBE_IDS = [
@@ -34,23 +35,19 @@ async function buildSampleGalleryVideos(): Promise<HomeGalleryItem[]> {
     src: `youtube:${id}`,
     title: titles[i],
     type: 'youtube' as const,
+    detailPath: null,
   }));
 }
 
-export function isVideoUrl(url: string): boolean {
-  try {
-    const pathname = new URL(url).pathname.toLowerCase();
-    return VIDEO_EXTENSIONS.some((ext) => pathname.endsWith(ext));
-  } catch {
-    return false;
-  }
-}
+export { getHomeGalleryMediaType, isVideoUrl } from './gallery-media';
 
 export type HomeGalleryItem = {
   id: string;
   src: string;
   title: string;
   type: 'video' | 'image' | 'youtube';
+  /** Public detail URL for database artworks; null for embedded samples */
+  detailPath: string | null;
 };
 
 export type HomeArtworkData = {
@@ -86,16 +83,15 @@ export async function getHomeArtworkData(): Promise<HomeArtworkData> {
     return { heroVideoUrl: FALLBACK_HERO_VIDEO, galleryVideos: sampleVideos };
   }
 
-  const first = validArtworks[0];
-  const firstIsVideo = isVideoUrl(first.mediaUrl);
-  const heroVideoUrl = firstIsVideo ? first.mediaUrl : FALLBACK_HERO_VIDEO;
-  const gallerySource = firstIsVideo ? validArtworks.slice(1) : validArtworks;
+  const heroVideoUrl = FALLBACK_HERO_VIDEO;
+  const gallerySource = validArtworks;
 
   const dbItems: HomeGalleryItem[] = gallerySource.map((a) => ({
     id: a.id,
     src: a.mediaUrl,
     title: a.title,
-    type: isVideoUrl(a.mediaUrl) ? 'video' : 'image',
+    type: getHomeGalleryMediaType(a.mediaUrl),
+    detailPath: `/works/${a.id}`,
   }));
 
   // Always keep the YouTube sample videos in the gallery alongside DB artworks
