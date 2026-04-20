@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getArtworkById } from '@/lib/artworks';
-import Image from 'next/image';
+import { isVideoUrl } from '@/lib/gallery-media';
 import { DeleteArtworkButton } from '@/components/delete-artwork-button';
 
 export const dynamic = 'force-dynamic';
@@ -14,6 +14,8 @@ export default async function ArtworkDetailPage({
   const { id } = await params;
   const artwork = await getArtworkById(id);
   if (!artwork) notFound();
+
+  const isVideo = isVideoUrl(artwork.mediaUrl);
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6 md:px-12">
@@ -32,12 +34,24 @@ export default async function ArtworkDetailPage({
         </div>
       </div>
       <div className="relative aspect-video overflow-hidden border border-plati-border bg-plati">
-        <Image
-          src={artwork.thumbUrl || artwork.mediaUrl}
-          alt={artwork.title}
-          fill
-          className="object-contain"
-        />
+        {isVideo ? (
+          <video
+            src={artwork.mediaUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            controls
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={artwork.thumbUrl || artwork.mediaUrl}
+            alt={artwork.title}
+            className="h-full w-full object-contain"
+          />
+        )}
       </div>
       <h1 className="mt-6 font-display text-display-md font-medium text-paper">{artwork.title}</h1>
       {artwork.year && <p className="mt-1 text-body text-plati-muted">{artwork.year}</p>}

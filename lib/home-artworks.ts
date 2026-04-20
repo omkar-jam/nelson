@@ -1,6 +1,7 @@
 import 'server-only';
 import { getArtworks } from './artworks';
 import { getHomeGalleryMediaType } from './gallery-media';
+import { getSetting, SETTING_KEYS } from './site-settings';
 
 /** Served from `public/videos/drone-hero.mov` */
 const FALLBACK_HERO_VIDEO = '/videos/drone-hero.mov';
@@ -14,22 +15,33 @@ const SAMPLE_YOUTUBE_IDS = [
   'YM74h367HkM',
 ];
 
-async function fetchYouTubeTitle(videoId: string): Promise<string> {
-  try {
-    const res = await fetch(
-      `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`,
-      { next: { revalidate: 86400 } },
-    );
-    if (!res.ok) return videoId;
-    const data = (await res.json()) as { title?: string };
-    return data.title ?? videoId;
-  } catch {
-    return videoId;
-  }
-}
+
+/** Hardcoded fallback titles so we never block the render on YouTube oEmbed */
+const SAMPLE_YOUTUBE_TITLES: Record<string, string> = {
+  l13V392f7IU: 'Nelson Ferreira — PlatiGleam Painting',
+  G72EEYOl6kE: 'Nelson Ferreira — Studio Work',
+  '8qLAdA3rTis': 'Nelson Ferreira — Silverpoint Drawing',
+  iCWe46phyrc: 'Nelson Ferreira — Academic Tradition',
+  YM74h367HkM: 'Nelson Ferreira — Visual Art',
+};
 
 async function buildSampleGalleryVideos(): Promise<HomeGalleryItem[]> {
-  const titles = await Promise.all(SAMPLE_YOUTUBE_IDS.map(fetchYouTubeTitle));
+  const titles = await Promise.all(
+    SAMPLE_YOUTUBE_IDS.map(async (id) => {
+      const fallback = SAMPLE_YOUTUBE_TITLES[id] ?? id;
+      try {
+        const res = await fetch(
+          `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`,
+          { next: { revalidate: 604800 } },
+        );
+        if (!res.ok) return fallback;
+        const data = (await res.json()) as { title?: string };
+        return data.title ?? fallback;
+      } catch {
+        return fallback;
+      }
+    }),
+  );
   return SAMPLE_YOUTUBE_IDS.map((id, i) => ({
     id: `yt-${i + 1}`,
     src: `youtube:${id}`,
@@ -67,23 +79,24 @@ function hasValidMedia(url: string): boolean {
 }
 
 export async function getHomeArtworkData(): Promise<HomeArtworkData> {
-  const sampleVideos = await buildSampleGalleryVideos();
+  const [sampleVideos, heroVideoUrl] = await Promise.all([
+    buildSampleGalleryVideos(),
+    getSetting(SETTING_KEYS.HERO_VIDEO_URL).catch(() => FALLBACK_HERO_VIDEO),
+  ]);
 
   let artworks: Awaited<ReturnType<typeof getArtworks>>;
   try {
     artworks = await getArtworks();
   } catch {
-    return { heroVideoUrl: FALLBACK_HERO_VIDEO, galleryVideos: sampleVideos };
+    return { heroVideoUrl: heroVideoUrl || FALLBACK_HERO_VIDEO, galleryVideos: sampleVideos };
   }
 
   // Only include artworks with a valid media URL
   const validArtworks = artworks.filter((a) => hasValidMedia(a.mediaUrl));
 
   if (validArtworks.length === 0) {
-    return { heroVideoUrl: FALLBACK_HERO_VIDEO, galleryVideos: sampleVideos };
+    return { heroVideoUrl: heroVideoUrl || FALLBACK_HERO_VIDEO, galleryVideos: sampleVideos };
   }
-
-  const heroVideoUrl = FALLBACK_HERO_VIDEO;
   const gallerySource = validArtworks;
 
   const dbItems: HomeGalleryItem[] = gallerySource.map((a) => ({

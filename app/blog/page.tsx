@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { SiteNav } from '@/components/SiteNav';
 import { getPublishedPosts } from '@/lib/posts';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function BlogPage() {
   const posts = await getPublishedPosts();

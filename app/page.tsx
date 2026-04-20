@@ -1,11 +1,16 @@
 import { getHomeArtworkData } from '@/lib/home-artworks';
 import { getPublishedPosts } from '@/lib/posts';
+import { getAllSettings } from '@/lib/site-settings';
 import { HomeContent } from './HomeContent';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const { heroVideoUrl, galleryVideos } = await getHomeArtworkData();
+  const [{ heroVideoUrl, galleryVideos }, siteSettings] = await Promise.all([
+    getHomeArtworkData(),
+    getAllSettings(),
+  ]);
+
   let blogPosts: { id: string; title: string; excerpt: string; slug: string }[] = [];
   try {
     const allPosts = await getPublishedPosts();
@@ -16,7 +21,7 @@ export default async function HomePage() {
       slug: p.slug,
     }));
   } catch {
-    // DB unreachable or Post table missing (e.g. migration not run) — show fallback blog section
+    // DB unreachable or Post table missing — show fallback blog section
   }
 
   return (
@@ -24,6 +29,7 @@ export default async function HomePage() {
       heroVideoUrl={heroVideoUrl}
       galleryVideos={galleryVideos}
       blogPosts={blogPosts}
+      siteSettings={siteSettings}
     />
   );
 }

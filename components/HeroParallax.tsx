@@ -67,6 +67,7 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
             muted
             loop
             playsInline
+            preload="metadata"
             className="absolute inset-0 h-full w-full bg-plati-dark object-contain object-center md:object-cover"
             src={videoSrc}
           />

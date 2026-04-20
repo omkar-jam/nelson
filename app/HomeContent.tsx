@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { HeroParallax } from '@/components/HeroParallax';
 import { SiteNav } from '@/components/SiteNav';
+import { YouTubeLite } from '@/components/YouTubeLite';
 import {
   DEFAULT_PHONE_COUNTRY_ISO,
   PHONE_COUNTRY_CODES,
@@ -94,16 +95,57 @@ export type BlogPostPreview = {
   slug: string;
 };
 
+type SiteSettings = {
+  bio_intro: string;
+  bio_more: string;
+  contact_intro: string;
+  contact_email: string;
+  contact_phone: string;
+  studio_name: string;
+  studio_address: string;
+  studio_city: string;
+  studio_postcode: string;
+  social_linkedin: string;
+  social_instagram: string;
+  social_youtube: string;
+  social_facebook: string;
+};
+
 type Props = {
   heroVideoUrl: string;
   galleryVideos: GalleryItem[];
   blogPosts?: BlogPostPreview[];
+  siteSettings?: SiteSettings;
 };
 
-export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
+export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettings }: Props) {
   const blogsToShow = (blogPosts && blogPosts.length > 0)
     ? blogPosts.map((p) => ({ id: p.id, title: p.title, excerpt: p.excerpt, url: `/blog/${p.slug}` }))
     : BLOGS;
+
+  const bioIntro = siteSettings?.bio_intro ?? BIO_INTRO;
+  const bioMoreParagraphs: string[] = (() => {
+    if (!siteSettings?.bio_more) return BIO_MORE;
+    try { return JSON.parse(siteSettings.bio_more) as string[]; } catch { return BIO_MORE; }
+  })();
+  const contactIntro = siteSettings?.contact_intro ?? CONTACT_INTRO;
+  const contactEmail = siteSettings?.contact_email ?? CONTACT_EMAIL;
+  const contactPhone = siteSettings?.contact_phone ?? CONTACT_PHONE;
+  const studio = siteSettings ? {
+    name: siteSettings.studio_name || STUDIO.name,
+    address: siteSettings.studio_address || STUDIO.address,
+    city: siteSettings.studio_city || STUDIO.city,
+    postcode: siteSettings.studio_postcode || STUDIO.postcode,
+    mapsEmbedUrl: `https://www.google.com/maps?q=${encodeURIComponent(`${siteSettings.studio_address || STUDIO.address} ${siteSettings.studio_city || STUDIO.city} ${siteSettings.studio_postcode || STUDIO.postcode}`)}&output=embed`,
+    directionsUrl: `https://www.google.com/maps/dir//${encodeURIComponent(`${siteSettings.studio_address || STUDIO.address}, ${siteSettings.studio_city || STUDIO.city} ${siteSettings.studio_postcode || STUDIO.postcode}`)}`,
+  } : STUDIO;
+  const social = [
+    { name: 'LinkedIn', href: siteSettings?.social_linkedin || SOCIAL[0].href, icon: 'linkedin' },
+    { name: 'Instagram', href: siteSettings?.social_instagram || SOCIAL[1].href, icon: 'instagram' },
+    { name: 'YouTube', href: siteSettings?.social_youtube || SOCIAL[2].href, icon: 'youtube' },
+    { name: 'Facebook', href: siteSettings?.social_facebook || SOCIAL[3].href, icon: 'facebook' },
+  ];
+  const youtubeChannelUrl = siteSettings?.social_youtube || YOUTUBE_CHANNEL_URL;
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneCountryIso, setPhoneCountryIso] = useState(DEFAULT_PHONE_COUNTRY_ISO);
@@ -113,7 +155,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [bioExpanded, setBioExpanded] = useState(false);
   const [contactName, setContactName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
+  const [contactEmailInput, setContactEmailInput] = useState('');
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [contactLoading, setContactLoading] = useState(false);
@@ -158,7 +200,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: contactName.trim(),
-          email: contactEmail.trim(),
+          email: contactEmailInput.trim(),
           subject: contactSubject.trim(),
           message: contactMessage.trim(),
         }),
@@ -170,7 +212,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
       }
       setContactSubmitted(true);
       setContactName('');
-      setContactEmail('');
+      setContactEmailInput('');
       setContactSubject('');
       setContactMessage('');
     } catch {
@@ -332,12 +374,10 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                           transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
                         >
                           {item.type === 'youtube' ? (
-                            <iframe
+                            <YouTubeLite
+                              videoId={item.src.replace(/^youtube:/, '')}
                               title={item.title}
-                              src={`https://www.youtube.com/embed/${item.src.replace(/^youtube:/, '')}?autoplay=1&mute=1&loop=1&playlist=${item.src.replace(/^youtube:/, '')}&rel=0&modestbranding=1`}
-                              className="h-full w-full border-0"
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
+                              className="h-full w-full"
                             />
                           ) : item.type === 'video' ? (
                             <video
@@ -345,6 +385,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                               muted
                               loop
                               playsInline
+                              preload="none"
                               className="h-full w-full object-cover"
                               src={item.src}
                             />
@@ -354,6 +395,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                               alt={item.title}
                               className="h-full w-full object-cover"
                               loading="lazy"
+                              decoding="async"
                             />
                           )}
                         </motion.div>
@@ -380,7 +422,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
             <ScrollReveal once={false} variant="fade" className="text-center">
               <h3 className="font-display text-display-sm font-light text-gleam sm:text-display-md">
                 <a
-                  href={YOUTUBE_CHANNEL_URL}
+                  href={youtubeChannelUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-colors hover:text-gleam-bright"
@@ -390,7 +432,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
               </h3>
               <p className="mt-1 font-body text-body text-night-soft">
                 <a
-                  href={YOUTUBE_CHANNEL_URL}
+                  href={youtubeChannelUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-colors hover:text-gleam"
@@ -417,7 +459,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                 </div>
               ) : null}
               <motion.a
-                href={YOUTUBE_CHANNEL_URL}
+                href={youtubeChannelUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.02 }}
@@ -453,7 +495,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
 
           <ScrollReveal once={false} variant="slideUp" delay={0.2}>
             <div className="mt-8 space-y-4 font-body text-body text-night-soft sm:mt-10 sm:text-body-lg sm:space-y-6">
-              <p>{BIO_INTRO}</p>
+              <p>{bioIntro}</p>
               <AnimatePresence>
                 {bioExpanded && (
                   <motion.div
@@ -463,7 +505,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                     transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
                     className="overflow-hidden space-y-4 sm:space-y-6"
                   >
-                    {BIO_MORE.map((para, i) => <p key={i}>{para}</p>)}
+                    {bioMoreParagraphs.map((para, i) => <p key={i}>{para}</p>)}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -548,14 +590,14 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
             <h2 className="font-display text-display-md font-light text-cream sm:text-display-lg">Contact me</h2>
             <div className="mt-1 h-px w-10 bg-gradient-to-r from-gleam/50 to-transparent" />
             <p className="mt-3 max-w-2xl font-body text-body leading-relaxed text-night-soft sm:text-body-lg">
-              {CONTACT_INTRO}
+              {contactIntro}
             </p>
             <div className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-12">
               {/* Map */}
               <div className="order-2 h-[280px] overflow-hidden border border-night-border sm:h-[320px] lg:order-1 lg:h-[400px]">
-                <iframe
-                  title="Studio location: 7-15 Greatorex Street, London"
-                  src={STUDIO.mapsEmbedUrl}
+                  <iframe
+                  title={`Studio location: ${studio.address}, ${studio.city}`}
+                  src={studio.mapsEmbedUrl}
                   width="100%"
                   height="100%"
                   className="h-full w-full border-0"
@@ -567,28 +609,28 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
               {/* Contact details + form */}
               <div className="order-1 flex flex-col gap-8 lg:order-2">
                 <div className="font-body text-body text-night-soft">
-                  <p className="font-medium text-cream sm:text-body-lg">{STUDIO.name}</p>
+                  <p className="font-medium text-cream sm:text-body-lg">{studio.name}</p>
                   <p className="mt-1">
                     <a
-                      href={STUDIO.directionsUrl}
+                      href={studio.directionsUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gold hover:underline"
                     >
-                      {STUDIO.address}, {STUDIO.city} {STUDIO.postcode}
+                      {studio.address}, {studio.city} {studio.postcode}
                     </a>
                   </p>
                   <p className="mt-3">
-                    <a href={`mailto:${CONTACT_EMAIL}`} className="text-gold hover:underline">{CONTACT_EMAIL}</a>
+                    <a href={`mailto:${contactEmail}`} className="text-gold hover:underline">{contactEmail}</a>
                   </p>
                   <p className="mt-2">
-                    <a href={`https://wa.me/${CONTACT_PHONE.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">
-                      {CONTACT_PHONE}
+                    <a href={`https://wa.me/${contactPhone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-gold hover:underline">
+                      {contactPhone}
                     </a>
                     <span className="text-night-muted"> (WhatsApp preferred)</span>
                   </p>
                   <div className="mt-4 flex gap-4">
-                    {SOCIAL.map(({ name, href, icon }) => (
+                    {social.map(({ name, href, icon }) => (
                       <motion.a
                         key={icon}
                         href={href}
@@ -637,8 +679,8 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                       <input
                         type="email"
                         placeholder="Email"
-                        value={contactEmail}
-                        onChange={(e) => setContactEmail(e.target.value)}
+                        value={contactEmailInput}
+                        onChange={(e) => setContactEmailInput(e.target.value)}
                         required
                         className="min-h-[48px] rounded-none border border-night-border bg-night-bg px-4 py-3 font-body text-base text-cream placeholder:text-night-muted focus:border-gold focus:outline-none"
                       />
@@ -708,7 +750,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
                 { label: 'Works', href: '#works' },
                 { label: 'Blog', href: '/blog' },
                 { label: 'Contact', href: '#contact' },
-                { label: 'YouTube', href: YOUTUBE_CHANNEL_URL, external: true },
+                { label: 'YouTube', href: youtubeChannelUrl, external: true },
               ].map(({ label, href, external }) => (
                 <a
                   key={label}
@@ -724,7 +766,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
             <div>
               <span className="font-body text-caption uppercase tracking-[0.15em] text-plati-muted">Follow</span>
               <div className="mt-3 flex flex-col gap-3">
-                {SOCIAL.map(({ name, href }) => (
+                {social.map(({ name, href }) => (
                   <a
                     key={name}
                     href={href}
@@ -740,7 +782,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts }: Props) {
           </div>
           <div className="flex flex-col items-center justify-between gap-2 border-t border-night-border py-5 sm:flex-row">
             <span className="font-body text-caption text-night-muted">© {new Date().getFullYear()} Nelson Ferreira. All rights reserved.</span>
-            <a href={`mailto:${CONTACT_EMAIL}`} className="font-body text-caption text-night-muted transition hover:text-gleam">{CONTACT_EMAIL}</a>
+            <a href={`mailto:${contactEmail}`} className="font-body text-caption text-night-muted transition hover:text-gleam">{contactEmail}</a>
           </div>
         </div>
       </footer>

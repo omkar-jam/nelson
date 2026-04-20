@@ -2,7 +2,7 @@ import { SiteNav } from '@/components/SiteNav';
 import { getArtworks } from '@/lib/artworks';
 import { ArtworkCard } from '@/components/artwork-card';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function GalleryPage() {
   const artworks = await getArtworks();
