@@ -16,6 +16,7 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY . .
+RUN npm install --cpu=x64 --os=linux sharp
 # Ensure public exists so COPY in runner never fails (repo may not have public/)
 RUN mkdir -p public
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -38,6 +39,7 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/bcryptjs ./node_modules/bcryptjs
 COPY --from=builder /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+COPY --from=builder /app/node_modules/sharp ./node_modules/sharp
 
 COPY docker-entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && chown nextjs:nodejs /entrypoint.sh
