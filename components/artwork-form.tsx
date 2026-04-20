@@ -61,7 +61,7 @@ export function ArtworkForm({ artwork }: Props) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadBytes, setUploadBytes] = useState<{ loaded: number; total: number | null } | null>(null);
+  const [uploadBytes, setUploadBytes] = useState<{ loaded: number; total: number } | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
   const [error, setError] = useState('');
   const mediaUrlInputRef = useRef<HTMLInputElement>(null);
