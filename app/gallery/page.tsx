@@ -2,7 +2,8 @@ import { SiteNav } from '@/components/SiteNav';
 import { getArtworks } from '@/lib/artworks';
 import { ArtworkCard } from '@/components/artwork-card';
 
-export const revalidate = 60;
+/** DB is not available during Docker image build — render on each request instead. */
+export const dynamic = 'force-dynamic';
 
 export default async function GalleryPage() {
   const artworks = await getArtworks();

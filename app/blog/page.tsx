@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { SiteNav } from '@/components/SiteNav';
 import { getPublishedPosts } from '@/lib/posts';
 
-export const revalidate = 60;
+/** DB is not available during Docker image build — render on each request instead. */
+export const dynamic = 'force-dynamic';
 
 export default async function BlogPage() {
   const posts = await getPublishedPosts();
