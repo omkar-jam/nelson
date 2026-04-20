@@ -6,10 +6,63 @@ import type { Artwork } from '@prisma/client';
 
 type Props = { artwork?: Artwork | null };
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** XMLHttpRequest gives upload progress; fetch() does not. */
+function postFormWithUploadProgress(
+  path: string,
+  formData: FormData,
+  onProgress: (loaded: number, total: number | null) => void
+): Promise<{ url: string }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', path);
+    xhr.withCredentials = true;
+
+    xhr.upload.addEventListener('progress', (ev) => {
+      if (ev.lengthComputable) {
+        onProgress(ev.loaded, ev.total);
+      } else {
+        onProgress(ev.loaded, null);
+      }
+    });
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const data = JSON.parse(xhr.responseText) as { url?: string; error?: string };
+          if (data.url) resolve({ url: data.url });
+          else reject(new Error(data.error || 'Upload failed'));
+        } catch {
+          reject(new Error('Invalid server response'));
+        }
+      } else {
+        try {
+          const data = JSON.parse(xhr.responseText) as { error?: string };
+          reject(new Error(data.error || xhr.statusText || 'Upload failed'));
+        } catch {
+          reject(new Error(xhr.statusText || 'Upload failed'));
+        }
+      }
+    });
+
+    xhr.addEventListener('error', () => reject(new Error('Network error — check your connection')));
+    xhr.addEventListener('abort', () => reject(new Error('Upload cancelled')));
+    xhr.send(formData);
+  });
+}
+
 export function ArtworkForm({ artwork }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadBytes, setUploadBytes] = useState<{ loaded: number; total: number | null } | null>(null);
+  const [uploadStatus, setUploadStatus] = useState('');
   const [error, setError] = useState('');
   const mediaUrlInputRef = useRef<HTMLInputElement>(null);
   const isEdit = !!artwork;
@@ -19,18 +72,28 @@ export function ArtworkForm({ artwork }: Props) {
     if (!file) return;
     setUploading(true);
     setError('');
+    setUploadProgress(0);
+    setUploadBytes({ loaded: 0, total: file.size });
+    setUploadStatus(`Preparing ${file.name} (${formatBytes(file.size)})…`);
+
+    const formData = new FormData();
+    formData.set('file', file);
+
     try {
-      const formData = new FormData();
-      formData.set('file', file);
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const { url } = await postFormWithUploadProgress('/api/upload', formData, (loaded, total) => {
+        const denom = total != null && total > 0 ? total : file.size;
+        const pct = denom > 0 ? Math.min(100, Math.round((100 * loaded) / denom)) : 0;
+        setUploadProgress(pct);
+        setUploadBytes({ loaded, total: denom });
+        if (loaded >= denom) {
+          setUploadStatus('Saving to storage…');
+        } else {
+          setUploadStatus(`Uploading ${formatBytes(loaded)} of ${formatBytes(denom)}…`);
+        }
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Upload failed');
-      }
-      const { url } = await res.json();
+
+      setUploadProgress(100);
+      setUploadStatus('Done');
       if (mediaUrlInputRef.current) {
         mediaUrlInputRef.current.value = url;
       }
@@ -38,6 +101,9 @@ export function ArtworkForm({ artwork }: Props) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
+      setUploadBytes(null);
+      setUploadStatus('');
       e.target.value = '';
     }
   }
@@ -148,8 +214,12 @@ export function ArtworkForm({ artwork }: Props) {
             placeholder="https://... or upload below"
             className={inputClass + ' flex-1'}
           />
-          <label className="flex cursor-pointer items-center border border-plati-border bg-plati px-4 py-2 text-body-sm text-plati-soft transition hover:border-gleam hover:text-gleam">
-            <span>{uploading ? 'Uploading...' : 'Upload'}</span>
+          <label
+            className={`flex shrink-0 cursor-pointer items-center border border-plati-border bg-plati px-4 py-2 text-body-sm transition hover:border-gleam hover:text-gleam ${
+              uploading ? 'pointer-events-none cursor-wait text-plati-muted' : 'cursor-pointer text-plati-soft'
+            }`}
+          >
+            <span>{uploading ? `${uploadProgress}%` : 'Upload'}</span>
             <input
               type="file"
               accept="image/*,video/*"
@@ -159,6 +229,29 @@ export function ArtworkForm({ artwork }: Props) {
             />
           </label>
         </div>
+        {uploading && (
+          <div className="mt-3 space-y-2">
+            <div
+              className="h-1.5 w-full overflow-hidden bg-plati-border"
+              role="progressbar"
+              aria-valuenow={uploadProgress}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Upload progress"
+            >
+              <div
+                className="h-full bg-gleam transition-[width] duration-150 ease-out"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+            <p className="text-caption text-plati-muted">{uploadStatus}</p>
+            {uploadBytes && uploadBytes.total > 0 && uploadProgress < 100 && (
+              <p className="text-caption text-plati-muted/80">
+                Large files can take several minutes on slow connections — keep this tab open.
+              </p>
+            )}
+          </div>
+        )}
       </div>
       <div>
         <label htmlFor="thumbUrl" className={labelClass}>Thumbnail URL (optional)</label>
