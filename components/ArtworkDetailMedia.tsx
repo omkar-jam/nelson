@@ -28,8 +28,11 @@ export function ArtworkDetailMedia({ mediaUrl, title }: Props) {
       <div className="aspect-video w-full overflow-hidden border border-night-border bg-black">
         <video
           src={mediaUrl}
-          controls
+          autoPlay
+          loop
+          muted
           playsInline
+          controls
           className="h-full w-full object-contain"
         />
       </div>
