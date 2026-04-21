@@ -27,6 +27,9 @@ export default async function AdminLayout({
               <Link href="/admin/blog" className="text-body-sm text-plati-soft transition hover:text-gleam">
                 Blog
               </Link>
+              <Link href="/admin/subscribers" className="text-body-sm text-plati-soft transition hover:text-gleam">
+                Subscribers
+              </Link>
               <Link href="/admin/newsletter" className="text-body-sm text-plati-soft transition hover:text-gleam">
                 Newsletter
               </Link>

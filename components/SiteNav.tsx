@@ -7,7 +7,6 @@ import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 
 const NAV_LINKS = [
   { label: 'Artwork', href: '/#works' },
-  { label: 'Gallery', href: '/gallery' },
   { label: 'About', href: '/about' },
   { label: 'Blog', href: '/blog' },
   { label: 'Contact', href: '/#contact' },
