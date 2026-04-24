@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const subscribers = await prisma.subscriber.findMany({
     where: includeUnsubscribed ? undefined : { unsubscribed: false },
     orderBy: { createdAt: 'desc' },
-    select: { id: true, email: true, phone: true, unsubscribed: true, createdAt: true },
+    select: { id: true, email: true, name: true, phone: true, unsubscribed: true, createdAt: true },
   });
 
   return NextResponse.json({
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : null;
   const phone = typeof body.phone === 'string' && body.phone.trim() ? body.phone.trim() : null;
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -37,8 +38,8 @@ export async function POST(request: NextRequest) {
   try {
     const subscriber = await prisma.subscriber.upsert({
       where: { email },
-      create: { email, phone, unsubscribed: false },
-      update: { phone, unsubscribed: false, updatedAt: new Date() },
+      create: { email, name, phone, unsubscribed: false },
+      update: { name, phone, unsubscribed: false, updatedAt: new Date() },
     });
     return NextResponse.json({ subscriber });
   } catch {

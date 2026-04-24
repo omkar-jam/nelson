@@ -11,7 +11,7 @@ export async function PATCH(
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json();
-  const { email, phone, unsubscribed } = body;
+  const { email, name, phone, unsubscribed } = body;
 
   if (email !== undefined && (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
     return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
@@ -20,6 +20,7 @@ export async function PATCH(
   try {
     const data: Record<string, unknown> = { updatedAt: new Date() };
     if (email !== undefined) data.email = email.trim().toLowerCase();
+    if (name !== undefined) data.name = name ? String(name).trim() : null;
     if (phone !== undefined) data.phone = phone ? String(phone).trim() : null;
     if (unsubscribed !== undefined) data.unsubscribed = Boolean(unsubscribed);
 

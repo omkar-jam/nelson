@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 type Subscriber = {
   id: string;
   email: string;
+  name: string | null;
   phone: string | null;
   unsubscribed: boolean;
   createdAt: string;
@@ -13,6 +14,7 @@ type Subscriber = {
 type EditState = {
   id: string;
   email: string;
+  name: string;
   phone: string;
   unsubscribed: boolean;
 } | null;
@@ -56,13 +58,14 @@ export default function SubscribersPage() {
     const q = search.toLowerCase();
     return (
       s.email.toLowerCase().includes(q) ||
+      (s.name ?? '').toLowerCase().includes(q) ||
       (s.phone ?? '').toLowerCase().includes(q)
     );
   });
 
   // ── Edit ──────────────────────────────────────────────────────────────────
   function openEdit(s: Subscriber) {
-    setEditState({ id: s.id, email: s.email, phone: s.phone ?? '', unsubscribed: s.unsubscribed });
+    setEditState({ id: s.id, email: s.email, name: s.name ?? '', phone: s.phone ?? '', unsubscribed: s.unsubscribed });
     setEditError(null);
   }
 
@@ -77,6 +80,7 @@ export default function SubscribersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: editState.email,
+          name: editState.name || null,
           phone: editState.phone || null,
           unsubscribed: editState.unsubscribed,
         }),
@@ -292,6 +296,16 @@ export default function SubscribersPage() {
             <h2 className="font-display text-display-sm font-light text-paper">Edit Subscriber</h2>
             <form onSubmit={saveEdit} className="mt-4 space-y-4">
               <div>
+                <label className="block font-body text-body-sm text-plati-soft">Name</label>
+                <input
+                  type="text"
+                  value={editState.name}
+                  onChange={(e) => setEditState((prev) => prev && { ...prev, name: e.target.value })}
+                  className="mt-1 w-full border border-plati-border bg-plati px-3 py-2 font-body text-body-sm text-paper focus:border-gleam focus:outline-none"
+                  placeholder="Subscriber name"
+                />
+              </div>
+              <div>
                 <label className="block font-body text-body-sm text-plati-soft">Email *</label>
                 <input
                   type="email"
@@ -381,6 +395,7 @@ export default function SubscribersPage() {
           <table className="w-full border-collapse font-body text-body-sm">
             <thead>
               <tr className="border-b border-plati-border text-left text-plati-muted">
+                <th className="pb-2 pr-4 font-normal uppercase tracking-widest">Name</th>
                 <th className="pb-2 pr-4 font-normal uppercase tracking-widest">Email</th>
                 <th className="pb-2 pr-4 font-normal uppercase tracking-widest">Phone</th>
                 <th className="pb-2 pr-4 font-normal uppercase tracking-widest">Status</th>
@@ -394,6 +409,7 @@ export default function SubscribersPage() {
                   key={s.id}
                   className={`border-b border-plati-border/50 transition hover:bg-plati/30 ${s.unsubscribed ? 'opacity-50' : ''}`}
                 >
+                  <td className="py-2.5 pr-4 text-plati-soft">{s.name ?? <span className="text-plati-muted">—</span>}</td>
                   <td className="py-2.5 pr-4 text-paper">{s.email}</td>
                   <td className="py-2.5 pr-4 text-plati-soft">{s.phone ?? <span className="text-plati-muted">—</span>}</td>
                   <td className="py-2.5 pr-4">

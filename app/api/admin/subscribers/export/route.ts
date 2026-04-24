@@ -21,13 +21,13 @@ export async function GET(request: NextRequest) {
   const subscribers = await prisma.subscriber.findMany({
     where: includeAll ? undefined : { unsubscribed: false },
     orderBy: { createdAt: 'desc' },
-    select: { email: true, phone: true, unsubscribed: true, createdAt: true },
+    select: { email: true, name: true, phone: true, unsubscribed: true, createdAt: true },
   });
 
-  const header = 'email,phone,unsubscribed,joined';
+  const header = 'email,name,phone,unsubscribed,joined';
   const rows = subscribers.map(
     (s) =>
-      `${escapeCSV(s.email)},${escapeCSV(s.phone)},${s.unsubscribed},${s.createdAt.toISOString()}`
+      `${escapeCSV(s.email)},${escapeCSV(s.name)},${escapeCSV(s.phone)},${s.unsubscribed},${s.createdAt.toISOString()}`
   );
   const csv = [header, ...rows].join('\r\n');
 

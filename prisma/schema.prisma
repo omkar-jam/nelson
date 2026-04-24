@@ -81,6 +81,7 @@ model Post {
 model Subscriber {
   id           String    @id @default(cuid())
   email        String    @unique
+  name         String?
   phone        String?
   unsubscribed Boolean   @default(false)
   createdAt    DateTime  @default(now())

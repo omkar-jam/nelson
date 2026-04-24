@@ -146,6 +146,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
     { name: 'Facebook', href: siteSettings?.social_facebook || SOCIAL[3].href, icon: 'facebook' },
   ];
   const youtubeChannelUrl = siteSettings?.social_youtube || YOUTUBE_CHANNEL_URL;
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneCountryIso, setPhoneCountryIso] = useState(DEFAULT_PHONE_COUNTRY_ISO);
@@ -172,6 +173,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          name: name.trim() || undefined,
           email: email.trim(),
           phone: phone.trim() || undefined,
           countryCode: dialCodeForIso(phoneCountryIso),
@@ -236,32 +238,47 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ type: 'spring', stiffness: 60, damping: 24, delay: 0.8 }}
-            className="mx-auto max-w-sm space-y-1.5"
+            className="mx-auto w-full max-w-sm"
           >
             {submitted ? (
-              <>
+              <div className="space-y-1">
                 <p className="font-body text-body-sm text-gleam">You&apos;re on the list.</p>
                 <p className="font-body text-caption leading-snug text-plati-muted">
                   Updates on upcoming projects &amp; art insights. Private — unsubscribe anytime.
                 </p>
-              </>
+              </div>
             ) : (
-              <>
-                <p className="font-body text-body-sm text-plati-soft">Join the mailing list</p>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                  className="min-h-[44px] w-full rounded-none border border-plati-border bg-plati/90 px-3 py-2.5 font-body text-base text-paper placeholder:text-plati-muted focus:border-gleam focus:outline-none"
-                  required
-                />
-                <div className="flex flex-col overflow-hidden rounded-none border border-plati-border bg-plati/90 focus-within:border-gleam sm:flex-row sm:flex-nowrap">
+              <div className="space-y-2">
+                <p className="font-body text-caption uppercase tracking-[0.12em] text-plati-muted">Join the mailing list</p>
+                {/* Name + Email row */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Name"
+                    autoComplete="name"
+                    className="min-h-[40px] w-full rounded-none border border-plati-border bg-plati/90 px-3 py-2 font-body text-sm text-paper placeholder:text-plati-muted focus:border-gleam focus:outline-none"
+                  />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email"
+                    autoComplete="email"
+                    className="min-h-[40px] w-full rounded-none border border-plati-border bg-plati/90 px-3 py-2 font-body text-sm text-paper placeholder:text-plati-muted focus:border-gleam focus:outline-none"
+                    required
+                  />
+                </div>
+                {/* Phone row: compact dial-code selector + number input */}
+                <div className="flex overflow-hidden rounded-none border border-plati-border bg-plati/90 focus-within:border-gleam">
                   <select
                     value={phoneCountryIso}
                     onChange={(e) => setPhoneCountryIso(e.target.value)}
-                    className="h-[44px] w-full min-w-0 cursor-pointer border-0 border-b border-plati-border bg-transparent py-0 pl-3 pr-8 text-left font-body text-base text-paper focus:border-gleam focus:outline-none focus:ring-0 sm:w-auto sm:min-w-[12rem] sm:max-w-[min(100%,14rem)] sm:shrink-0 sm:border-b-0 sm:border-r sm:pr-3 md:min-w-[13.5rem] [&>option]:bg-plati-dark [&>option]:text-paper"
+                    className="h-[40px] shrink-0 cursor-pointer border-0 border-r border-plati-border bg-transparent py-0 pl-2.5 pr-6 font-body text-sm text-paper focus:outline-none focus:ring-0 [&>option]:bg-plati-dark [&>option]:text-paper"
                     aria-label="Country code"
+                    style={{ width: '5.5rem' }}
+                    title={PHONE_COUNTRY_CODES.find((c) => c.iso === phoneCountryIso)?.label}
                   >
                     {PHONE_COUNTRY_CODES.map(({ value, label, iso }) => (
                       <option key={iso} value={iso}>
@@ -269,31 +286,36 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Mobile number"
-                    className="min-h-[44px] min-w-0 flex-1 border-0 bg-transparent px-3 py-2.5 font-body text-base text-paper placeholder:text-plati-muted focus:border-0 focus:outline-none focus:ring-0"
-                    autoComplete="tel"
-                  />
+                  <div className="flex min-w-0 flex-1 items-center px-2.5">
+                    <span className="shrink-0 font-body text-sm text-plati-muted">{dialCodeForIso(phoneCountryIso)}</span>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Mobile (optional)"
+                      className="min-h-[40px] min-w-0 flex-1 border-0 bg-transparent pl-1.5 font-body text-sm text-paper placeholder:text-plati-muted focus:outline-none focus:ring-0"
+                      autoComplete="tel-national"
+                    />
+                  </div>
                 </div>
-                <motion.button
-                  type="submit"
-                  disabled={loading}
-                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(197,191,180,0.2)' }}
-                  whileTap={{ scale: 0.97 }}
-                  className="touch-target w-full border border-gleam/60 bg-gleam/10 px-4 py-2.5 font-body text-sm uppercase tracking-widest text-gleam transition disabled:opacity-60 sm:w-auto"
-                >
-                  {loading ? '…' : 'Submit'}
-                </motion.button>
+                <div className="flex items-center justify-between gap-3 pt-0.5">
+                  <p className="font-body text-[0.65rem] leading-snug text-plati-muted">
+                    ~5 emails/year. Private — unsubscribe anytime.
+                  </p>
+                  <motion.button
+                    type="submit"
+                    disabled={loading}
+                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(197,191,180,0.2)' }}
+                    whileTap={{ scale: 0.97 }}
+                    className="shrink-0 border border-gleam/60 bg-gleam/10 px-4 py-2 font-body text-xs uppercase tracking-widest text-gleam transition disabled:opacity-60"
+                  >
+                    {loading ? '…' : 'Subscribe'}
+                  </motion.button>
+                </div>
                 {error && (
                   <p className="font-body text-caption text-red-400">{error}</p>
                 )}
-                <p className="font-body text-caption leading-snug text-plati-muted">
-                  Updates on upcoming projects &amp; art insights. Private — unsubscribe anytime.
-                </p>
-              </>
+              </div>
             )}
           </motion.form>
           <motion.a
@@ -319,17 +341,26 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
       </HeroParallax>
 
       {/* Achievements Marquee */}
-      <div className="overflow-hidden border-y border-night-border bg-plati/60 py-3 sm:py-4">
+      <div className="relative overflow-hidden border-y border-gleam/25 bg-gradient-to-r from-gleam/[0.12] via-plati/90 to-gleam/[0.12] py-3 shadow-[0_0_32px_-8px_rgba(197,191,180,0.12),inset_0_1px_0_0_rgba(197,191,180,0.2)] sm:py-4">
         <motion.div
           animate={{ x: ['0%', '-50%'] }}
-          transition={{ duration: 45, ease: 'linear', repeat: Infinity }}
+          transition={{ duration: 4, ease: 'linear', repeat: Infinity }}
           className="flex items-center whitespace-nowrap will-change-transform"
         >
           {[...ACHIEVEMENTS, ...ACHIEVEMENTS].map((item, i) => (
-            <span key={i} className="inline-flex items-center gap-3 px-6 sm:px-10">
-              <span className="font-display text-display-sm text-gleam tracking-wide">{item.value}</span>
-              <span className="font-body text-caption uppercase tracking-[0.14em] text-plati-muted">{item.label}</span>
-              <span className="ml-6 text-night-border select-none" aria-hidden>·</span>
+            <span
+              key={i}
+              className="inline-flex shrink-0 items-center gap-3 px-6 sm:px-10"
+            >
+              <span className="font-display text-display-sm text-gleam-bright drop-shadow-[0_0_12px_rgba(226,221,212,0.25)]">
+                {item.value}
+              </span>
+              <span className="font-body text-caption uppercase tracking-[0.14em] text-cream/90">
+                {item.label}
+              </span>
+              <span className="ml-4 text-gleam/50 select-none sm:ml-6" aria-hidden>
+                ·
+              </span>
             </span>
           ))}
         </motion.div>
