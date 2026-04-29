@@ -5,6 +5,16 @@ import { HomeContent } from './HomeContent';
 
 export const dynamic = 'force-dynamic';
 
+/** `<link rel="preload">` only applies to direct file URLs; YouTube heroes use an iframe. */
+function shouldPreloadHeroVideo(url: string): boolean {
+  const u = url.trim();
+  if (!u) return false;
+  if (u.startsWith('youtube:')) return false;
+  const lower = u.toLowerCase();
+  if (lower.includes('youtube.com') || lower.includes('youtu.be')) return false;
+  return true;
+}
+
 export default async function HomePage() {
   const [{ heroVideoUrl, galleryVideos }, siteSettings] = await Promise.all([
     getHomeArtworkData(),
@@ -25,11 +35,16 @@ export default async function HomePage() {
   }
 
   return (
-    <HomeContent
-      heroVideoUrl={heroVideoUrl}
-      galleryVideos={galleryVideos}
-      blogPosts={blogPosts}
-      siteSettings={siteSettings}
-    />
+    <>
+      {shouldPreloadHeroVideo(heroVideoUrl || '') ? (
+        <link rel="preload" href={heroVideoUrl} as="video" />
+      ) : null}
+      <HomeContent
+        heroVideoUrl={heroVideoUrl}
+        galleryVideos={galleryVideos}
+        blogPosts={blogPosts}
+        siteSettings={siteSettings}
+      />
+    </>
   );
 }
