@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const YOUTUBE_PREFIX = 'youtube:';
@@ -24,11 +24,20 @@ function getYouTubeId(videoSrc: string): string | null {
 interface HeroParallaxProps {
   children: React.ReactNode;
   videoSrc: string;
+  /** Shown until video frames are ready; also behind YouTube iframe until it loads. */
+  posterSrc?: string;
 }
 
-export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
+export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const [youtubeFrameLoaded, setYoutubeFrameLoaded] = useState(false);
   const youtubeId = getYouTubeId(videoSrc);
+
+  const poster = posterSrc?.trim() || undefined;
+
+  useEffect(() => {
+    setYoutubeFrameLoaded(false);
+  }, [videoSrc]);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -42,6 +51,11 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
     ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1`
     : null;
 
+  const iframeFadeClass =
+    poster && embedUrl
+      ? `transition-opacity duration-700 ${youtubeFrameLoaded ? 'opacity-100' : 'opacity-0'}`
+      : '';
+
   return (
     <section
       ref={sectionRef}
@@ -53,10 +67,22 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
       >
         {embedUrl ? (
           <div className="absolute inset-0 overflow-hidden bg-plati-dark">
+            {poster ? (
+              <img
+                src={poster}
+                alt=""
+                aria-hidden
+                fetchPriority="high"
+                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
+                  youtubeFrameLoaded ? 'opacity-0' : 'opacity-100'
+                }`}
+              />
+            ) : null}
             <iframe
               title="Hero video"
               src={embedUrl}
-              className="absolute border-0 max-md:inset-0 max-md:h-full max-md:w-full md:inset-auto md:left-1/2 md:top-1/2 md:h-[56.25vw] md:min-h-[100dvh] md:w-[177.78vh] md:min-w-[100vw] md:-translate-x-1/2 md:-translate-y-1/2"
+              onLoad={() => setYoutubeFrameLoaded(true)}
+              className={`absolute border-0 max-md:inset-0 max-md:h-full max-md:w-full md:inset-auto md:left-1/2 md:top-1/2 md:h-[56.25vw] md:min-h-[100dvh] md:w-[177.78vh] md:min-w-[100vw] md:-translate-x-1/2 md:-translate-y-1/2 ${iframeFadeClass}`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
@@ -68,6 +94,8 @@ export function HeroParallax({ children, videoSrc }: HeroParallaxProps) {
             loop
             playsInline
             preload="auto"
+            poster={poster}
+            fetchPriority="high"
             className="absolute inset-0 h-full w-full bg-plati-dark object-contain object-center md:object-cover"
             src={videoSrc}
           />

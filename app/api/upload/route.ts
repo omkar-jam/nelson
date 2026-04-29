@@ -5,10 +5,23 @@ import { uploadToR2, isR2Configured } from '@/lib/r2';
 import { randomUUID } from 'crypto';
 
 const VIDEO_EXTENSIONS = new Set(['mp4', 'mov', 'webm', 'mkv', 'm4v']);
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif']);
 
 function isLikelyVideo(file: File, ext: string): boolean {
   if (file.type.startsWith('video/')) return true;
   return VIDEO_EXTENSIONS.has(ext.toLowerCase());
+}
+
+function isLikelyImage(file: File, ext: string): boolean {
+  if (file.type.startsWith('image/')) return true;
+  return IMAGE_EXTENSIONS.has(ext.toLowerCase());
+}
+
+/** `hero` | `hero_poster` | default `artworks` */
+function resolveUploadFolder(folderParam: string | null): string {
+  if (folderParam === 'hero') return 'hero';
+  if (folderParam === 'hero_poster') return 'hero_poster';
+  return 'artworks';
 }
 
 export async function POST(request: NextRequest) {
@@ -22,8 +35,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const folderParam = request.nextUrl.searchParams.get('folder');
-  const folder = folderParam === 'hero' ? 'hero' : 'artworks';
+  const folder = resolveUploadFolder(request.nextUrl.searchParams.get('folder'));
 
   const formData = await request.formData();
   const file = formData.get('file') as File | null;
@@ -36,6 +48,13 @@ export async function POST(request: NextRequest) {
   if (folder === 'hero' && !isLikelyVideo(file, ext)) {
     return NextResponse.json(
       { error: 'Hero uploads must be a video file (.mp4, .mov, .webm, …)' },
+      { status: 400 }
+    );
+  }
+
+  if (folder === 'hero_poster' && !isLikelyImage(file, ext)) {
+    return NextResponse.json(
+      { error: 'Poster uploads must be an image (.jpg, .png, .webp, …)' },
       { status: 400 }
     );
   }

@@ -113,12 +113,20 @@ type SiteSettings = {
 
 type Props = {
   heroVideoUrl: string;
+  /** Still shown until hero video is ready (optional). */
+  heroPosterUrl?: string;
   galleryVideos: GalleryItem[];
   blogPosts?: BlogPostPreview[];
   siteSettings?: SiteSettings;
 };
 
-export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettings }: Props) {
+export function HomeContent({
+  heroVideoUrl,
+  heroPosterUrl = '',
+  galleryVideos,
+  blogPosts,
+  siteSettings,
+}: Props) {
   const blogsToShow = (blogPosts && blogPosts.length > 0)
     ? blogPosts.map((p) => ({ id: p.id, title: p.title, excerpt: p.excerpt, url: `/blog/${p.slug}` }))
     : BLOGS;
@@ -228,7 +236,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
     <main className="min-h-screen w-full max-w-[100vw] overflow-x-hidden">
       <SiteNav />
 
-      <HeroParallax videoSrc={heroVideoUrl}>
+      <HeroParallax videoSrc={heroVideoUrl} posterSrc={heroPosterUrl || undefined}>
         <div
           className="relative z-20 w-full bg-plati-dark px-4 pb-5 pt-6 max-md:mt-0 sm:px-6 md:mt-auto md:min-h-0 md:bg-transparent md:pt-28 md:pb-8"
           style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}

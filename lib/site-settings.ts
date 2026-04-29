@@ -3,6 +3,8 @@ import { prisma } from './prisma';
 
 export const SETTING_KEYS = {
   HERO_VIDEO_URL: 'hero_video_url',
+  /** Optional still shown until hero video plays (direct URL or R2). */
+  HERO_VIDEO_POSTER_URL: 'hero_video_poster_url',
   BIO_INTRO: 'bio_intro',
   BIO_MORE: 'bio_more', // JSON array of paragraphs
   CONTACT_INTRO: 'contact_intro',
@@ -22,6 +24,7 @@ export type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];
 
 export const SETTING_DEFAULTS: Record<SettingKey, string> = {
   hero_video_url: '/videos/drone-hero.mov',
+  hero_video_poster_url: '',
   bio_intro:
     'Nelson Ferreira is a master painter and draughtsman trained in the rigorous 15th-century and 19th-century Academic traditions. He specialises in silverpoint, oil glazing, and the sight-size method, and is widely regarded as one of the foremost practitioners of these historic techniques today.',
   bio_more: JSON.stringify([
