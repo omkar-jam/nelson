@@ -340,13 +340,9 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
         </div>
       </HeroParallax>
 
-      {/* Achievements Marquee */}
+      {/* Achievements Marquee — CSS infinite scroll (duplicate track) avoids Framer repeat snap */}
       <div className="relative overflow-hidden border-y border-gleam/25 bg-gradient-to-r from-gleam/[0.12] via-plati/90 to-gleam/[0.12] py-3 shadow-[0_0_32px_-8px_rgba(197,191,180,0.12),inset_0_1px_0_0_rgba(197,191,180,0.2)] sm:py-4">
-        <motion.div
-          animate={{ x: ['0%', '-50%'] }}
-          transition={{ duration: 4, ease: 'linear', repeat: Infinity }}
-          className="flex items-center whitespace-nowrap will-change-transform"
-        >
+        <div className="flex w-max animate-marquee items-center whitespace-nowrap will-change-transform">
           {[...ACHIEVEMENTS, ...ACHIEVEMENTS].map((item, i) => (
             <span
               key={i}
@@ -363,7 +359,7 @@ export function HomeContent({ heroVideoUrl, galleryVideos, blogPosts, siteSettin
               </span>
             </span>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       <section id="works" className="relative bg-night-bg py-12 sm:py-24 md:py-32">

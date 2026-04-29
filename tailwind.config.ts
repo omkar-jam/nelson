@@ -56,6 +56,8 @@ const config: Config = {
       animation: {
         'fade-in': 'fadeIn 1s ease-out forwards',
         'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        /** Duplicated track: translate -50% for a seamless loop (see HomeContent marquee). */
+        marquee: 'marqueeScroll 45s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -65,6 +67,10 @@ const config: Config = {
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(24px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        marqueeScroll: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
     },

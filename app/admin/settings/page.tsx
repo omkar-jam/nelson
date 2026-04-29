@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { formatBytes, postFormWithUploadProgress } from '@/lib/upload-client';
 
 type Settings = {
   hero_video_url: string;
@@ -57,6 +58,13 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [heroUploading, setHeroUploading] = useState(false);
+  const [heroUploadProgress, setHeroUploadProgress] = useState(0);
+  const [heroUploadBytes, setHeroUploadBytes] = useState<{ loaded: number; total: number } | null>(
+    null
+  );
+  const [heroUploadStatus, setHeroUploadStatus] = useState('');
+  const [heroUploadError, setHeroUploadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -74,6 +82,49 @@ export default function AdminSettingsPage() {
 
   const set = (key: keyof Settings, value: string) =>
     setSettings((prev) => (prev ? { ...prev, [key]: value } : prev));
+
+  async function handleHeroFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setHeroUploading(true);
+    setHeroUploadError(null);
+    setHeroUploadProgress(0);
+    setHeroUploadBytes({ loaded: 0, total: file.size });
+    setHeroUploadStatus(`Preparing ${file.name} (${formatBytes(file.size)})…`);
+
+    const formData = new FormData();
+    formData.set('file', file);
+
+    try {
+      const { url } = await postFormWithUploadProgress(
+        '/api/upload?folder=hero',
+        formData,
+        (loaded, total) => {
+          const denom = total != null && total > 0 ? total : file.size;
+          const pct = denom > 0 ? Math.min(100, Math.round((100 * loaded) / denom)) : 0;
+          setHeroUploadProgress(pct);
+          setHeroUploadBytes({ loaded, total: denom });
+          if (loaded >= denom) {
+            setHeroUploadStatus('Saving to storage…');
+          } else {
+            setHeroUploadStatus(`Uploading ${formatBytes(loaded)} of ${formatBytes(denom)}…`);
+          }
+        }
+      );
+
+      setHeroUploadProgress(100);
+      setHeroUploadStatus('Done');
+      set('hero_video_url', url);
+    } catch (err) {
+      setHeroUploadError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setHeroUploading(false);
+      setHeroUploadProgress(0);
+      setHeroUploadBytes(null);
+      setHeroUploadStatus('');
+      e.target.value = '';
+    }
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,16 +169,60 @@ export default function AdminSettingsPage() {
         <Section title="Hero Video">
           <Field
             label="Hero video URL"
-            hint="Paste a direct video URL (R2, .mp4, .mov) or leave as /videos/drone-hero.mov to use the default."
+            hint="Upload a video file (stored like artwork media), paste a direct URL (R2, .mp4, .mov), or YouTube link — or use /videos/drone-hero.mov for the bundled default."
           >
-            <input
-              type="url"
-              value={settings.hero_video_url}
-              onChange={(e) => set('hero_video_url', e.target.value)}
-              className={inputClass}
-              placeholder="/videos/drone-hero.mov"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={settings.hero_video_url}
+                onChange={(e) => set('hero_video_url', e.target.value)}
+                className={inputClass + ' flex-1'}
+                placeholder="/videos/drone-hero.mov"
+              />
+              <label
+                className={`flex shrink-0 cursor-pointer items-center border border-plati-border bg-plati px-4 py-2 font-body text-body-sm transition hover:border-gleam hover:text-gleam ${
+                  heroUploading
+                    ? 'pointer-events-none cursor-wait text-plati-muted'
+                    : 'cursor-pointer text-plati-soft'
+                }`}
+              >
+                <span>{heroUploading ? `${heroUploadProgress}%` : 'Upload'}</span>
+                <input
+                  type="file"
+                  accept="video/*,.mp4,.mov,.webm,.mkv,.m4v"
+                  className="hidden"
+                  disabled={heroUploading}
+                  onChange={handleHeroFileChange}
+                />
+              </label>
+            </div>
           </Field>
+          {heroUploadError && (
+            <p className="font-body text-body-sm text-red-400">{heroUploadError}</p>
+          )}
+          {heroUploading && (
+            <div className="space-y-2">
+              <div
+                className="h-1.5 w-full overflow-hidden bg-plati-border"
+                role="progressbar"
+                aria-valuenow={heroUploadProgress}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label="Hero video upload progress"
+              >
+                <div
+                  className="h-full bg-gleam transition-[width] duration-150 ease-out"
+                  style={{ width: `${heroUploadProgress}%` }}
+                />
+              </div>
+              <p className="font-body text-caption text-plati-muted">{heroUploadStatus}</p>
+              {heroUploadBytes && heroUploadBytes.total > 0 && heroUploadProgress < 100 && (
+                <p className="font-body text-caption text-plati-muted/80">
+                  Large files can take several minutes on slow connections — keep this tab open.
+                </p>
+              )}
+            </div>
+          )}
           {settings.hero_video_url && (
             <video
               key={settings.hero_video_url}
