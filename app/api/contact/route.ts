@@ -14,6 +14,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const name = typeof body.name === 'string' ? body.name.trim().slice(0, MAX_NAME_LENGTH) : '';
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const countryCode = typeof body.countryCode === 'string' ? body.countryCode.trim() : '';
+    const phoneRaw = typeof body.phone === 'string' ? body.phone.replace(/\D/g, '').trim() : '';
+    const dialCode = (countryCode && countryCode.startsWith('+')) ? countryCode : countryCode ? `+${countryCode}` : '';
+    const phone = phoneRaw ? `${dialCode} ${phoneRaw}`.trim() : '';
     const subject = typeof body.subject === 'string' ? body.subject.trim().slice(0, MAX_SUBJECT_LENGTH) : '';
     const message = typeof body.message === 'string' ? body.message.trim().slice(0, MAX_MESSAGE_LENGTH) : '';
 
@@ -27,6 +31,13 @@ export async function POST(request: NextRequest) {
     if (!isValidEmail(email)) {
       return NextResponse.json(
         { error: 'Please enter a valid email address' },
+        { status: 400 }
+      );
+    }
+
+    if (!phone) {
+      return NextResponse.json(
+        { error: 'Phone number is required' },
         { status: 400 }
       );
     }
@@ -53,6 +64,7 @@ export async function POST(request: NextRequest) {
         : `[Contact] Message from ${name || email}`;
       const text = [
         `From: ${name || '(no name)'} <${email}>`,
+        `Phone: ${phone}`,
         subject ? `Subject: ${subject}` : null,
         '',
         message,
@@ -61,6 +73,7 @@ export async function POST(request: NextRequest) {
         .join('\n');
       const html = [
         `<p><strong>From:</strong> ${escapeHtml(name || '(no name)')} &lt;<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>&gt;</p>`,
+        `<p><strong>Phone:</strong> <a href="tel:${escapeHtml(phone.replace(/\s/g, ''))}">${escapeHtml(phone)}</a></p>`,
         subject ? `<p><strong>Subject:</strong> ${escapeHtml(subject)}</p>` : '',
         '<hr/>',
         `<pre style="white-space:pre-wrap;font-family:inherit;">${escapeHtml(message)}</pre>`,

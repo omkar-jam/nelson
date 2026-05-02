@@ -68,7 +68,7 @@ const BIO_STATS = [
   { value: '1M+', label: 'Batalha viewers' },
   { value: '300K+', label: 'Exhibition visitors' },
   { value: '2×', label: 'NPG lecturer' },
-  { value: '7+', label: 'Solo show countries' },
+  { value: '3', label: 'Solo show continents' },
 ];
 
 const BIO_INTRO =
@@ -167,6 +167,8 @@ export function HomeContent({
   const [bioExpanded, setBioExpanded] = useState(false);
   const [contactName, setContactName] = useState('');
   const [contactEmailInput, setContactEmailInput] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactPhoneCountryIso, setContactPhoneCountryIso] = useState(DEFAULT_PHONE_COUNTRY_ISO);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [contactLoading, setContactLoading] = useState(false);
@@ -213,6 +215,8 @@ export function HomeContent({
         body: JSON.stringify({
           name: contactName.trim(),
           email: contactEmailInput.trim(),
+          phone: contactPhone.trim() || undefined,
+          countryCode: dialCodeForIso(contactPhoneCountryIso),
           subject: contactSubject.trim(),
           message: contactMessage.trim(),
         }),
@@ -225,6 +229,8 @@ export function HomeContent({
       setContactSubmitted(true);
       setContactName('');
       setContactEmailInput('');
+      setContactPhone('');
+      setContactPhoneCountryIso(DEFAULT_PHONE_COUNTRY_ISO);
       setContactSubject('');
       setContactMessage('');
     } catch {
@@ -734,6 +740,33 @@ export function HomeContent({
                         required
                         className="min-h-[48px] rounded-none border border-night-border bg-night-bg px-4 py-3 font-body text-base text-cream placeholder:text-night-muted focus:border-gold focus:outline-none"
                       />
+                      {/* Phone with country dial-code selector */}
+                      <div className="flex min-h-[48px] overflow-hidden rounded-none border border-night-border bg-night-bg focus-within:border-gold">
+                        <select
+                          value={contactPhoneCountryIso}
+                          onChange={(e) => setContactPhoneCountryIso(e.target.value)}
+                          aria-label="Country code"
+                          className="shrink-0 cursor-pointer border-r border-night-border bg-night-bg px-2 py-3 font-body text-sm text-cream focus:outline-none"
+                        >
+                          {PHONE_COUNTRY_CODES.map(({ value, label, iso }) => (
+                            <option key={iso} value={iso}>
+                              {label}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="flex min-w-0 flex-1 items-center px-3">
+                          <span className="shrink-0 font-body text-sm text-night-muted">{dialCodeForIso(contactPhoneCountryIso)}</span>
+                          <input
+                            type="tel"
+                            value={contactPhone}
+                            onChange={(e) => setContactPhone(e.target.value)}
+                            placeholder="Phone number"
+                            required
+                            autoComplete="tel-national"
+                            className="min-w-0 flex-1 bg-transparent pl-2 font-body text-base text-cream placeholder:text-night-muted focus:outline-none"
+                          />
+                        </div>
+                      </div>
                       <input
                         type="text"
                         placeholder="Subject"
