@@ -55,10 +55,10 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@nelsonferreirauk';
 
 const ACHIEVEMENTS = [
   { value: '1M+', label: 'Viewers at Batalha Monastery' },
-  { value: '300K+', label: 'Exhibition Visitors 2023–25' },
+  { value: '300K+', label: 'Exhibition visitors since 2023' },
   { value: '2×', label: 'National Portrait Gallery Lecturer' },
-  { value: '7+', label: 'Countries — Solo Exhibitions' },
-  { value: '15C', label: 'Academic Tradition' },
+  { value: 'Solo', label: 'Exhibitions worldwide' },
+  { value: 'Art courses', label: 'on Bargue.org', href: 'https://bargue.org' },
   { value: '1st', label: 'Artist Ever at Borobudur Temple' },
   { value: 'UNESCO', label: 'World Heritage Sites Exhibited' },
   { value: 'Walt Disney', label: 'Animation Studios — Senior Instructor' },
@@ -300,7 +300,8 @@ export function HomeContent({
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Mobile (optional)"
+                      placeholder="Mobile"
+                      required
                       className="min-h-[40px] min-w-0 flex-1 border-0 bg-transparent pl-1.5 font-body text-sm text-paper placeholder:text-plati-muted focus:outline-none focus:ring-0"
                       autoComplete="tel-national"
                     />
@@ -359,9 +360,20 @@ export function HomeContent({
               <span className="font-display text-display-sm text-gleam-bright drop-shadow-[0_0_12px_rgba(226,221,212,0.25)]">
                 {item.value}
               </span>
-              <span className="font-body text-caption uppercase tracking-[0.14em] text-cream/90">
-                {item.label}
-              </span>
+              {item.href ? (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-body text-caption uppercase tracking-[0.14em] text-cream/90 underline underline-offset-2 hover:text-gleam-bright transition-colors"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <span className="font-body text-caption uppercase tracking-[0.14em] text-cream/90">
+                  {item.label}
+                </span>
+              )}
               <span className="ml-4 text-gleam/50 select-none sm:ml-6" aria-hidden>
                 ·
               </span>
@@ -775,7 +787,16 @@ export function HomeContent({
                 Visual Artist · Art Teacher · PlatiGleam
               </p>
               <p className="mt-3 font-body text-caption text-night-muted leading-relaxed max-w-[18rem]">
-                Master painter &amp; draughtsman. 15th-century Academic tradition. London.
+                Master painter &amp; draughtsman.{' '}
+                <a
+                  href="https://bargue.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gleam hover:text-gleam-bright underline underline-offset-2 transition-colors"
+                >
+                  Art courses on Bargue.org
+                </a>
+                . London. Lisbon. Worldwide.
               </p>
             </div>
             {/* Nav links */}
