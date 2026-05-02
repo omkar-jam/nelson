@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let buffer = Buffer.from(await file.arrayBuffer());
+  let buffer: Buffer<ArrayBufferLike> = Buffer.from(await file.arrayBuffer());
   let finalExt = ext;
   let contentType = file.type || 'application/octet-stream';
 
