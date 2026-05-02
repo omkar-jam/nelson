@@ -824,13 +824,14 @@ export function HomeContent({
               </p>
               <p className="mt-3 font-body text-caption text-night-muted leading-relaxed max-w-[18rem]">
                 Master painter &amp; draughtsman.{' '}
+                Art courses on{' '}
                 <a
                   href="https://bargue.org"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gleam hover:text-gleam-bright underline underline-offset-2 transition-colors"
                 >
-                  Art courses on Bargue.org
+                  bargue.org
                 </a>
                 . London. Lisbon. Worldwide.
               </p>
