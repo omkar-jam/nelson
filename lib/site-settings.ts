@@ -47,10 +47,6 @@ export const SETTING_DEFAULTS: Record<SettingKey, string> = {
   social_facebook: 'https://www.facebook.com/nelson.ferreira.art.classes.drawing.painting/',
 };
 
-import 'server-only';
-import { unstable_cache } from 'next/cache';
-import { prisma } from './prisma';
-
 export async function getSetting(key: SettingKey): Promise<string> {
   try {
     const row = await prisma.siteSetting.findUnique({ where: { key } });
