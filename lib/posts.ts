@@ -1,23 +1,31 @@
 import 'server-only';
+import { unstable_cache } from 'next/cache';
 import { applyBlogClientPatches } from './blog-patches';
 import { fixImportedWixBlogHtml } from './blog-html';
 import { prisma } from './prisma';
 
-export async function getPublishedPosts() {
-  return prisma.post.findMany({
-    where: { published: true },
-    orderBy: { publishedAt: 'desc' },
-    select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true },
-  });
-}
+export const getPublishedPosts = unstable_cache(
+  async () =>
+    prisma.post.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: 'desc' },
+      select: { id: true, title: true, slug: true, excerpt: true, publishedAt: true },
+    }),
+  ['published-posts'],
+  { revalidate: 300, tags: ['posts'] }
+);
 
-export async function getPostBySlug(slug: string) {
-  const post = await prisma.post.findFirst({
-    where: { slug, published: true },
-  });
-  if (!post) return null;
-  return { ...post, body: applyBlogClientPatches(post.slug, fixImportedWixBlogHtml(post.body)) };
-}
+export const getPostBySlug = unstable_cache(
+  async (slug: string) => {
+    const post = await prisma.post.findFirst({
+      where: { slug, published: true },
+    });
+    if (!post) return null;
+    return { ...post, body: applyBlogClientPatches(post.slug, fixImportedWixBlogHtml(post.body)) };
+  },
+  ['post-by-slug'],
+  { revalidate: 300, tags: ['posts'] }
+);
 
 export async function getAllPostsForAdmin() {
   return prisma.post.findMany({

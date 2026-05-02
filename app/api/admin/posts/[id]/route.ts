@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getPostById, updatePost, deletePost } from '@/lib/posts';
@@ -47,6 +48,7 @@ export async function PUT(
     data.publishedAt = body.publishedAt.trim();
   const post = await updatePost(id, data);
   if (!post) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  revalidateTag('posts');
   return NextResponse.json(post);
 }
 
@@ -59,6 +61,7 @@ export async function DELETE(
   const { id } = await params;
   try {
     await deletePost(id);
+    revalidateTag('posts');
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });

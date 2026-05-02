@@ -1,4 +1,5 @@
 import 'server-only';
+import { unstable_cache } from 'next/cache';
 import { prisma } from './prisma';
 
 export const SETTING_KEYS = {
@@ -46,6 +47,10 @@ export const SETTING_DEFAULTS: Record<SettingKey, string> = {
   social_facebook: 'https://www.facebook.com/nelson.ferreira.art.classes.drawing.painting/',
 };
 
+import 'server-only';
+import { unstable_cache } from 'next/cache';
+import { prisma } from './prisma';
+
 export async function getSetting(key: SettingKey): Promise<string> {
   try {
     const row = await prisma.siteSetting.findUnique({ where: { key } });
@@ -55,19 +60,23 @@ export async function getSetting(key: SettingKey): Promise<string> {
   }
 }
 
-export async function getAllSettings(): Promise<Record<SettingKey, string>> {
-  try {
-    const rows = await prisma.siteSetting.findMany();
-    const map = Object.fromEntries(rows.map((r) => [r.key, r.value])) as Partial<Record<SettingKey, string>>;
-    const result = {} as Record<SettingKey, string>;
-    for (const key of Object.values(SETTING_KEYS)) {
-      result[key] = map[key] ?? SETTING_DEFAULTS[key];
+export const getAllSettings = unstable_cache(
+  async (): Promise<Record<SettingKey, string>> => {
+    try {
+      const rows = await prisma.siteSetting.findMany();
+      const map = Object.fromEntries(rows.map((r) => [r.key, r.value])) as Partial<Record<SettingKey, string>>;
+      const result = {} as Record<SettingKey, string>;
+      for (const key of Object.values(SETTING_KEYS)) {
+        result[key] = map[key] ?? SETTING_DEFAULTS[key];
+      }
+      return result;
+    } catch {
+      return { ...SETTING_DEFAULTS };
     }
-    return result;
-  } catch {
-    return { ...SETTING_DEFAULTS };
-  }
-}
+  },
+  ['site-settings'],
+  { revalidate: 3600, tags: ['settings'] }
+);
 
 export async function setSetting(key: SettingKey, value: string): Promise<void> {
   await prisma.siteSetting.upsert({

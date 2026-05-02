@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getArtworks, createArtwork } from '@/lib/artworks';
@@ -30,5 +31,6 @@ export async function POST(request: NextRequest) {
     thumbUrl: thumbUrl ?? null,
     order: order != null ? Number(order) : 0,
   });
+  revalidateTag('artworks');
   return NextResponse.json(artwork);
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAllPages, upsertPage } from '@/lib/pages';
@@ -26,5 +27,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'slug and title are required' }, { status: 400 });
   }
   await upsertPage(slug, title, content);
+  revalidateTag('pages');
   return NextResponse.json({ ok: true });
 }

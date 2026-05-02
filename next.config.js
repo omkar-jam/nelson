@@ -39,6 +39,34 @@ const nextConfig = {
           },
         ],
       },
+      // Public pages: serve stale HTML instantly while revalidating in background
+      {
+        source: '/(|about|blog|contact)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        ],
+      },
+      {
+        source: '/blog/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        ],
+      },
+      {
+        source: '/works/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        ],
+      },
       {
         source: '/videos/(.*)',
         headers: [

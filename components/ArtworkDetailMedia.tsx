@@ -33,6 +33,7 @@ export function ArtworkDetailMedia({ mediaUrl, title }: Props) {
           muted
           playsInline
           controls
+          preload="metadata"
           className="h-full w-full object-contain"
         />
       </div>

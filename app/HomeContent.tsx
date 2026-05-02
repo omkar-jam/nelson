@@ -84,6 +84,8 @@ export type GalleryItem = {
   src: string;
   title: string;
   type: 'video' | 'image' | 'youtube';
+  /** Thumbnail / poster still shown before video loads. */
+  thumbUrl?: string | null;
   /** Set for admin artworks; opens `/works/[id]`. Sample embeds omit this. */
   detailPath?: string | null;
 };
@@ -432,7 +434,8 @@ export function HomeContent({
                               muted
                               loop
                               playsInline
-                              preload="none"
+                              preload="metadata"
+                              poster={item.thumbUrl ?? undefined}
                               className="h-full w-full object-cover"
                               src={item.src}
                             />

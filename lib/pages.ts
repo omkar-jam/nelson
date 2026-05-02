@@ -1,9 +1,12 @@
 import 'server-only';
+import { unstable_cache } from 'next/cache';
 import { prisma } from './prisma';
 
-export async function getPageBySlug(slug: string) {
-  return prisma.page.findUnique({ where: { slug } });
-}
+export const getPageBySlug = unstable_cache(
+  async (slug: string) => prisma.page.findUnique({ where: { slug } }),
+  ['page-by-slug'],
+  { revalidate: 3600, tags: ['pages'] }
+);
 
 export async function getAllPages() {
   return prisma.page.findMany({ orderBy: { slug: 'asc' } });

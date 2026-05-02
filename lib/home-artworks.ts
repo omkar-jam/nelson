@@ -14,6 +14,8 @@ export type HomeGalleryItem = {
   src: string;
   title: string;
   type: 'video' | 'image' | 'youtube';
+  /** Thumbnail / poster still shown before video loads. */
+  thumbUrl?: string | null;
   /** Public detail URL for database artworks; null for embedded samples */
   detailPath: string | null;
 };
@@ -63,6 +65,7 @@ export async function getHomeArtworkData(): Promise<HomeArtworkData> {
     src: a.mediaUrl,
     title: a.title,
     type: getHomeGalleryMediaType(a.mediaUrl),
+    thumbUrl: a.thumbUrl ?? null,
     detailPath: `/works/${a.id}`,
   }));
 

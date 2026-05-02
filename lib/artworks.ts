@@ -1,4 +1,5 @@
 import 'server-only';
+import { unstable_cache } from 'next/cache';
 import { prisma } from './prisma';
 
 export type ArtworkCreate = {
@@ -12,15 +13,20 @@ export type ArtworkCreate = {
 
 export type ArtworkUpdate = Partial<ArtworkCreate>;
 
-export async function getArtworks() {
-  return prisma.artwork.findMany({
-    orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-  });
-}
+export const getArtworks = unstable_cache(
+  async () =>
+    prisma.artwork.findMany({
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+    }),
+  ['artworks'],
+  { revalidate: 300, tags: ['artworks'] }
+);
 
-export async function getArtworkById(id: string) {
-  return prisma.artwork.findUnique({ where: { id } });
-}
+export const getArtworkById = unstable_cache(
+  async (id: string) => prisma.artwork.findUnique({ where: { id } }),
+  ['artwork-by-id'],
+  { revalidate: 300, tags: ['artworks'] }
+);
 
 export async function createArtwork(data: ArtworkCreate) {
   return prisma.artwork.create({ data });

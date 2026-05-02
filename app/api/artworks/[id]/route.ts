@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getArtworkById, updateArtwork, deleteArtwork } from '@/lib/artworks';
@@ -23,6 +24,7 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
   const artwork = await updateArtwork(id, body);
+  revalidateTag('artworks');
   return NextResponse.json(artwork);
 }
 
@@ -35,5 +37,6 @@ export async function DELETE(
 
   const { id } = await params;
   await deleteArtwork(id);
+  revalidateTag('artworks');
   return new NextResponse(null, { status: 204 });
 }

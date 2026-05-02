@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAllSettings, setSettings, SETTING_KEYS } from '@/lib/site-settings';
@@ -36,5 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   await setSettings(entries);
+  revalidateTag('settings');
+  revalidateTag('artworks');
   return NextResponse.json({ ok: true });
 }
