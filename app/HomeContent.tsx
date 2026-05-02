@@ -167,7 +167,7 @@ export function HomeContent({
   const [bioExpanded, setBioExpanded] = useState(false);
   const [contactName, setContactName] = useState('');
   const [contactEmailInput, setContactEmailInput] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [contactPhoneInput, setContactPhoneInput] = useState('');
   const [contactPhoneCountryIso, setContactPhoneCountryIso] = useState(DEFAULT_PHONE_COUNTRY_ISO);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
@@ -215,7 +215,7 @@ export function HomeContent({
         body: JSON.stringify({
           name: contactName.trim(),
           email: contactEmailInput.trim(),
-          phone: contactPhone.trim() || undefined,
+          phone: contactPhoneInput.trim() || undefined,
           countryCode: dialCodeForIso(contactPhoneCountryIso),
           subject: contactSubject.trim(),
           message: contactMessage.trim(),
@@ -229,7 +229,7 @@ export function HomeContent({
       setContactSubmitted(true);
       setContactName('');
       setContactEmailInput('');
-      setContactPhone('');
+      setContactPhoneInput('');
       setContactPhoneCountryIso(DEFAULT_PHONE_COUNTRY_ISO);
       setContactSubject('');
       setContactMessage('');
@@ -758,8 +758,8 @@ export function HomeContent({
                           <span className="shrink-0 font-body text-sm text-night-muted">{dialCodeForIso(contactPhoneCountryIso)}</span>
                           <input
                             type="tel"
-                            value={contactPhone}
-                            onChange={(e) => setContactPhone(e.target.value)}
+                            value={contactPhoneInput}
+                            onChange={(e) => setContactPhoneInput(e.target.value)}
                             placeholder="Phone number"
                             required
                             autoComplete="tel-national"
