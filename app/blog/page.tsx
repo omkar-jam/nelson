@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SiteNav } from '@/components/SiteNav';
+import { formatPostPublishedAt } from '@/lib/blog-date';
 import { getPublishedPosts } from '@/lib/posts';
 
 /** DB is not available during Docker image build — render on each request instead. */
@@ -20,7 +21,9 @@ export default async function BlogPage() {
           <p className="mt-12 text-body text-plati-muted">No posts yet.</p>
         ) : (
           <ul className="mt-12 space-y-8">
-            {posts.map((post) => (
+            {posts.map((post) => {
+              const published = formatPostPublishedAt(post.publishedAt);
+              return (
               <li key={post.id}>
                 <Link
                   href={`/blog/${post.slug}`}
@@ -29,18 +32,14 @@ export default async function BlogPage() {
                   <h2 className="font-display text-display-sm font-medium text-paper">
                     {post.title}
                   </h2>
-                  {post.publishedAt && (
+                  {published ? (
                     <time
-                      dateTime={post.publishedAt.toISOString()}
+                      dateTime={published.iso}
                       className="mt-1 block font-body text-caption text-plati-muted"
                     >
-                      {new Date(post.publishedAt).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric',
-                      })}
+                      {published.display}
                     </time>
-                  )}
+                  ) : null}
                   <p className="mt-3 font-body text-body text-plati-soft line-clamp-3">
                     {post.excerpt}
                   </p>
@@ -49,7 +48,8 @@ export default async function BlogPage() {
                   </span>
                 </Link>
               </li>
-            ))}
+            );
+            })}
           </ul>
         )}
       </div>

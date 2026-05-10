@@ -136,7 +136,15 @@ export function HomeContent({
   const bioIntro = siteSettings?.bio_intro ?? BIO_INTRO;
   const bioMoreParagraphs: string[] = (() => {
     if (!siteSettings?.bio_more) return BIO_MORE;
-    try { return JSON.parse(siteSettings.bio_more) as string[]; } catch { return BIO_MORE; }
+    try {
+      const parsed = JSON.parse(siteSettings.bio_more) as unknown;
+      if (Array.isArray(parsed) && parsed.every((p) => typeof p === 'string')) {
+        return parsed;
+      }
+    } catch {
+      /* invalid JSON */
+    }
+    return BIO_MORE;
   })();
   const contactIntro = siteSettings?.contact_intro ?? CONTACT_INTRO;
   const contactEmail = siteSettings?.contact_email ?? CONTACT_EMAIL;

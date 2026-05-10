@@ -422,10 +422,14 @@ export default function AdminSettingsPage() {
               rows={8}
               value={(() => {
                 try {
-                  return (JSON.parse(settings.bio_more) as string[]).join('\n\n');
+                  const parsed = JSON.parse(settings.bio_more) as unknown;
+                  if (Array.isArray(parsed) && parsed.every((p) => typeof p === 'string')) {
+                    return parsed.join('\n\n');
+                  }
                 } catch {
-                  return settings.bio_more;
+                  /* invalid JSON */
                 }
+                return settings.bio_more;
               })()}
               onChange={(e) => {
                 const paras = e.target.value.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);

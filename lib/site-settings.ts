@@ -23,6 +23,19 @@ export const SETTING_KEYS = {
 
 export type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];
 
+/** `bio_more` must be a JSON string array; bad admin/DB values would crash the homepage `.map()`. */
+function sanitizeBioMoreJson(value: string, fallback: string): string {
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (Array.isArray(parsed) && parsed.every((p) => typeof p === 'string')) {
+      return JSON.stringify(parsed);
+    }
+  } catch {
+    // invalid JSON
+  }
+  return fallback;
+}
+
 export const SETTING_DEFAULTS: Record<SettingKey, string> = {
   hero_video_url: '/videos/drone-hero.mov',
   hero_video_poster_url: '',
@@ -65,6 +78,10 @@ export const getAllSettings = unstable_cache(
       for (const key of Object.values(SETTING_KEYS)) {
         result[key] = map[key] ?? SETTING_DEFAULTS[key];
       }
+      result[SETTING_KEYS.BIO_MORE] = sanitizeBioMoreJson(
+        result[SETTING_KEYS.BIO_MORE],
+        SETTING_DEFAULTS[SETTING_KEYS.BIO_MORE]
+      );
       return result;
     } catch {
       return { ...SETTING_DEFAULTS };
