@@ -398,6 +398,17 @@
   animation: shimmer 4s linear infinite;
 }
 
+/* Selected client logos — monochrome gleam on dark backgrounds */
+.client-logo {
+  opacity: 0.58;
+  filter: brightness(0) invert(1);
+  transition: opacity 0.3s ease;
+}
+
+.group:hover .client-logo {
+  opacity: 0.92;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-scroll-hint,
   .animate-marquee,

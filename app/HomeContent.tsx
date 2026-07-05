@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollReveal } from '@/components/ScrollReveal';
 import { HeroParallax } from '@/components/HeroParallax';
 import { SiteNav } from '@/components/SiteNav';
+import { SelectedClients } from '@/components/SelectedClients';
 import { YouTubeLite } from '@/components/YouTubeLite';
 import {
   DEFAULT_PHONE_COUNTRY_ISO,
@@ -58,7 +59,7 @@ const ACHIEVEMENTS = [
   { value: '300K+', label: 'Exhibition visitors since 2023' },
   { value: '2×', label: 'National Portrait Gallery Lecturer' },
   { value: 'Solo', label: 'Exhibitions worldwide' },
-  { value: 'Art courses', label: 'on Bargue.org', href: 'https://bargue.org' },
+  { value: 'Art courses', label: 'Bargue.org', href: 'https://bargue.org' },
   { value: '1st', label: 'Artist Ever at Borobudur Temple' },
   { value: 'UNESCO', label: 'World Heritage Sites Exhibited' },
   { value: 'Walt Disney', label: 'Animation Studios — Senior Instructor' },
@@ -67,8 +68,6 @@ const ACHIEVEMENTS = [
 const BIO_STATS = [
   { value: '1M+', label: 'Batalha viewers' },
   { value: '300K+', label: 'Exhibition visitors' },
-  { value: '2×', label: 'NPG lecturer' },
-  { value: '3', label: 'Solo show continents' },
 ];
 
 const BIO_INTRO =
@@ -398,6 +397,8 @@ export function HomeContent({
         </div>
       </div>
 
+      <SelectedClients />
+
       <section id="works" className="relative bg-night-bg py-12 sm:py-24 md:py-32">
         <div aria-hidden className="pointer-events-none absolute right-4 top-4 select-none font-display text-[7rem] leading-none text-plati-border/20 sm:right-8 sm:top-8 sm:text-[11rem]">01</div>
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-12">
@@ -547,7 +548,7 @@ export function HomeContent({
           </ScrollReveal>
 
           <ScrollReveal once={false} variant="fade" delay={0.15}>
-            <div className="mt-8 grid grid-cols-2 gap-5 sm:mt-12 sm:grid-cols-4 sm:gap-8">
+            <div className="mt-8 grid grid-cols-2 gap-5 sm:mt-12 sm:gap-8">
               {BIO_STATS.map(({ value, label }) => (
                 <div key={label} className="border-t border-gleam/20 pt-4">
                   <p className="font-display text-display-md text-gleam sm:text-display-lg">{value}</p>
@@ -835,7 +836,7 @@ export function HomeContent({
               </p>
               <p className="mt-3 font-body text-caption text-night-muted leading-relaxed max-w-[18rem]">
                 Master painter &amp; draughtsman.{' '}
-                Art courses on{' '}
+                Art courses{' '}
                 <a
                   href="https://bargue.org"
                   target="_blank"
