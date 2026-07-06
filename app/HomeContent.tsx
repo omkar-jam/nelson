@@ -57,7 +57,6 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@nelsonferreirauk';
 const ACHIEVEMENTS = [
   { value: '1M+', label: 'Viewers at Batalha Monastery' },
   { value: '300K+', label: 'Exhibition visitors since 2023' },
-  { value: '2×', label: 'National Portrait Gallery Lecturer' },
   { value: 'Solo', label: 'Exhibitions worldwide' },
   { value: 'Art courses', label: 'Bargue.org', href: 'https://bargue.org' },
   { value: '1st', label: 'Artist Ever at Borobudur Temple' },

@@ -2,12 +2,16 @@
 
 import { ScrollReveal } from '@/components/ScrollReveal';
 
+const DEFAULT_LOGO_CLASS =
+  'client-logo max-h-12 w-auto max-w-[85%] object-contain transition duration-300 group-hover:opacity-100 sm:max-h-14';
+
 const SELECTED_CLIENTS = [
   {
     name: 'National Portrait Gallery, London',
     logo: '/clients/npg.svg',
-    width: 280,
-    height: 42,
+    width: 320,
+    height: 52,
+    logoClassName: `${DEFAULT_LOGO_CLASS} max-h-[4.5rem] max-w-[95%] sm:max-h-20`,
   },
   {
     name: 'UNESCO',
@@ -24,8 +28,9 @@ const SELECTED_CLIENTS = [
   {
     name: 'Walt Disney / Industrial Light & Magic',
     logo: '/clients/walt-disney-ilm.svg',
-    width: 240,
-    height: 48,
+    width: 280,
+    height: 60,
+    logoClassName: `${DEFAULT_LOGO_CLASS} max-h-[4.5rem] max-w-[95%] sm:max-h-20`,
   },
   {
     name: 'Bank of America',
@@ -68,7 +73,7 @@ export function SelectedClients() {
           {SELECTED_CLIENTS.map((client, i) => (
             <ScrollReveal key={client.name} once={false} variant="fade" delay={0.05 * i}>
               <li className="group flex h-full flex-col items-center justify-center text-center">
-                <div className="flex h-16 w-full items-center justify-center sm:h-20">
+                <div className="flex h-20 w-full items-center justify-center sm:h-24">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={client.logo}
@@ -77,7 +82,9 @@ export function SelectedClients() {
                     height={client.height}
                     loading="lazy"
                     decoding="async"
-                    className="client-logo max-h-12 w-auto max-w-[85%] object-contain transition duration-300 group-hover:opacity-100 sm:max-h-14"
+                    className={'logoClassName' in client && client.logoClassName
+                      ? client.logoClassName
+                      : DEFAULT_LOGO_CLASS}
                   />
                 </div>
                 <p className="mt-3 font-body text-[0.65rem] uppercase leading-snug tracking-[0.12em] text-plati-muted transition-colors duration-300 group-hover:text-plati-soft sm:text-caption">
