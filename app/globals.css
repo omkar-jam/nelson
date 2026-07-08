@@ -353,6 +353,11 @@
   }
 }
 
+/* Artist bio portrait — soft edge blend into night surface */
+.artist-portrait {
+  filter: contrast(1.04) brightness(0.96);
+}
+
 /* Subtle grain overlay for depth */
 .grain-overlay::after {
   content: '';

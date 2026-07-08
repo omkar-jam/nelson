@@ -8,6 +8,7 @@ import { HeroParallax } from '@/components/HeroParallax';
 import { SiteNav } from '@/components/SiteNav';
 import { SelectedClients } from '@/components/SelectedClients';
 import { YouTubeLite } from '@/components/YouTubeLite';
+import { LazyAutoplayVideo } from '@/components/LazyAutoplayVideo';
 import {
   DEFAULT_PHONE_COUNTRY_ISO,
   PHONE_COUNTRY_CODES,
@@ -401,7 +402,7 @@ export function HomeContent({
       <section id="works" className="relative bg-night-bg py-12 sm:py-24 md:py-32">
         <div aria-hidden className="pointer-events-none absolute right-4 top-4 select-none font-display text-[7rem] leading-none text-plati-border/20 sm:right-8 sm:top-8 sm:text-[11rem]">01</div>
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-12">
-          <ScrollReveal once={false} variant="blur" className="mb-8 text-center sm:mb-16" delay={0.1}>
+          <ScrollReveal once={true} variant="blur" className="mb-8 text-center sm:mb-16" delay={0.1}>
             <h2 className="font-display text-display-lg font-light tracking-wide text-cream sm:text-display-xl">Works</h2>
             <div className="mx-auto mt-3 h-px w-12 bg-gradient-to-r from-transparent via-gleam/50 to-transparent" />
             <p className="mt-3 font-body text-body text-night-soft sm:text-body-lg">Paintings in motion</p>
@@ -413,7 +414,7 @@ export function HomeContent({
               {galleryVideos.map((item, i) => (
                 <ScrollReveal
                   key={item.id}
-                  once={false}
+                  once={true}
                   variant={i % 3 === 0 ? 'slideLeft' : i % 3 === 1 ? 'slideRight' : 'scale'}
                   delay={0.05 * (i % 4)}
                   className="overflow-hidden"
@@ -443,15 +444,10 @@ export function HomeContent({
                               className="h-full w-full"
                             />
                           ) : item.type === 'video' ? (
-                            <video
-                              autoPlay
-                              muted
-                              loop
-                              playsInline
-                              preload="metadata"
-                              poster={item.thumbUrl ?? undefined}
-                              className="h-full w-full object-cover"
+                            <LazyAutoplayVideo
                               src={item.src}
+                              poster={item.thumbUrl ?? undefined}
+                              className="h-full w-full"
                             />
                           ) : (
                             <img
@@ -483,7 +479,7 @@ export function HomeContent({
           )}
           {/* Featured videos from YouTube channel */}
           <div className="mt-16 sm:mt-24">
-            <ScrollReveal once={false} variant="fade" className="text-center">
+            <ScrollReveal once={true} variant="fade" className="text-center">
               <h3 className="font-display text-display-sm font-light text-gleam sm:text-display-md">
                 <a
                   href={youtubeChannelUrl}
@@ -540,73 +536,108 @@ export function HomeContent({
 
       <section className="relative border-t border-night-border bg-night-surface py-12 sm:py-24 md:py-32">
         <div aria-hidden className="pointer-events-none absolute right-4 top-4 select-none font-display text-[7rem] leading-none text-plati-border/20 sm:right-8 sm:top-8 sm:text-[11rem]">02</div>
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 md:px-12">
-          <ScrollReveal once={false} variant="slideUp">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-12">
+          <ScrollReveal once={true} variant="slideUp">
             <h2 className="font-display text-display-md font-light text-gold sm:text-display-lg">Artist Bio</h2>
             <div className="mt-1 h-px w-10 bg-gradient-to-r from-gold/50 to-transparent" />
           </ScrollReveal>
 
-          <ScrollReveal once={false} variant="fade" delay={0.15}>
-            <div className="mt-8 grid grid-cols-2 gap-5 sm:mt-12 sm:gap-8">
-              {BIO_STATS.map(({ value, label }) => (
-                <div key={label} className="border-t border-gleam/20 pt-4">
-                  <p className="font-display text-display-md text-gleam sm:text-display-lg">{value}</p>
-                  <p className="mt-1 font-body text-caption uppercase tracking-widest text-plati-muted">{label}</p>
+          <div className="mt-8 grid items-start gap-10 sm:mt-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14 xl:gap-16">
+            <ScrollReveal once={true} variant="fade" delay={0.1} className="relative mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
+              <figure className="relative">
+                <div className="relative overflow-hidden">
+                  <img
+                    src="/images/nelson-prambanan.jpg"
+                    alt="Nelson Ferreira at Prambanan Temple, Indonesia"
+                    width={540}
+                    height={1024}
+                    loading="lazy"
+                    decoding="async"
+                    className="artist-portrait block h-auto w-full object-cover object-[center_42%] aspect-[3/5] sm:aspect-[2/3]"
+                  />
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night-surface via-transparent to-plati-dark/35"
+                  />
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-night-surface/80 to-transparent sm:w-14"
+                  />
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-night-surface/80 to-transparent sm:w-14"
+                  />
                 </div>
-              ))}
-            </div>
-          </ScrollReveal>
+                <figcaption className="mt-4 font-body text-caption uppercase tracking-[0.18em] text-plati-muted">
+                  Prambanan · Indonesia
+                </figcaption>
+              </figure>
+            </ScrollReveal>
 
-          <ScrollReveal once={false} variant="slideUp" delay={0.2}>
-            <div className="mt-8 space-y-4 font-body text-body text-night-soft sm:mt-10 sm:text-body-lg sm:space-y-6">
-              <p>{bioIntro}</p>
-              <AnimatePresence>
-                {bioExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-                    className="overflow-hidden space-y-4 sm:space-y-6"
+            <div className="min-w-0">
+              <ScrollReveal once={true} variant="fade" delay={0.15}>
+                <div className="grid grid-cols-2 gap-5 sm:gap-8">
+                  {BIO_STATS.map(({ value, label }) => (
+                    <div key={label} className="border-t border-gleam/20 pt-4">
+                      <p className="font-display text-display-md text-gleam sm:text-display-lg">{value}</p>
+                      <p className="mt-1 font-body text-caption uppercase tracking-widest text-plati-muted">{label}</p>
+                    </div>
+                  ))}
+                </div>
+              </ScrollReveal>
+
+              <ScrollReveal once={true} variant="slideUp" delay={0.2}>
+                <div className="mt-8 space-y-4 font-body text-body text-night-soft sm:mt-10 sm:text-body-lg sm:space-y-6">
+                  <p>{bioIntro}</p>
+                  <AnimatePresence>
+                    {bioExpanded && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+                        className="overflow-hidden space-y-4 sm:space-y-6"
+                      >
+                        {bioMoreParagraphs.map((para, i) => <p key={i}>{para}</p>)}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                <motion.button
+                  type="button"
+                  onClick={() => setBioExpanded((e) => !e)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="touch-target mt-6 inline-flex items-center gap-2 font-body text-body-sm uppercase tracking-widest text-gleam transition hover:text-gleam-bright sm:mt-8"
+                >
+                  {bioExpanded ? 'Read less' : 'Read more'}
+                  <motion.span
+                    animate={{ rotate: bioExpanded ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                    aria-hidden
                   >
-                    {bioMoreParagraphs.map((para, i) => <p key={i}>{para}</p>)}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </motion.span>
+                </motion.button>
+              </ScrollReveal>
             </div>
-            <motion.button
-              type="button"
-              onClick={() => setBioExpanded((e) => !e)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="touch-target mt-6 inline-flex items-center gap-2 font-body text-body-sm uppercase tracking-widest text-gleam transition hover:text-gleam-bright sm:mt-8"
-            >
-              {bioExpanded ? 'Read less' : 'Read more'}
-              <motion.span
-                animate={{ rotate: bioExpanded ? 180 : 0 }}
-                transition={{ duration: 0.3 }}
-                aria-hidden
-              >
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </motion.span>
-            </motion.button>
-          </ScrollReveal>
+          </div>
         </div>
       </section>
 
       <section className="relative bg-plati-dark py-12 sm:py-24 md:py-32">
         <div aria-hidden className="pointer-events-none absolute right-4 top-4 select-none font-display text-[7rem] leading-none text-plati-border/20 sm:right-8 sm:top-8 sm:text-[11rem]">03</div>
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-12">
-          <ScrollReveal once={false} variant="fade" className="mb-8 sm:mb-16">
+          <ScrollReveal once={true} variant="fade" className="mb-8 sm:mb-16">
             <h2 className="font-display text-display-md font-light text-paper sm:text-display-lg">Blog</h2>
             <div className="mt-1 h-px w-10 bg-gradient-to-r from-gleam/50 to-transparent" />
             <p className="mt-3 font-body text-body text-night-soft sm:text-body-lg">Exhibitions, residencies and reflections</p>
           </ScrollReveal>
           <div className="grid gap-6 sm:gap-12 md:grid-cols-2">
             {blogsToShow.map((blog, i) => (
-              <ScrollReveal key={blog.id} once={false} variant={i === 0 ? 'scaleRotate' : 'flip'} delay={0.08 * i}>
+              <ScrollReveal key={blog.id} once={true} variant={i === 0 ? 'scaleRotate' : 'flip'} delay={0.08 * i}>
                 <motion.a
                   href={blog.url}
                   {...(blog.url.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
@@ -650,7 +681,7 @@ export function HomeContent({
       <section id="contact" className="relative border-t border-night-border bg-night-surface py-12 sm:py-24 md:py-32">
         <div aria-hidden className="pointer-events-none absolute right-4 top-4 select-none font-display text-[7rem] leading-none text-plati-border/20 sm:right-8 sm:top-8 sm:text-[11rem]">04</div>
         <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-12">
-          <ScrollReveal once={false} variant="slideDown">
+          <ScrollReveal once={true} variant="slideDown">
             <h2 className="font-display text-display-md font-light text-cream sm:text-display-lg">Contact me</h2>
             <div className="mt-1 h-px w-10 bg-gradient-to-r from-gleam/50 to-transparent" />
             <p className="mt-3 max-w-2xl font-body text-body leading-relaxed text-night-soft sm:text-body-lg">

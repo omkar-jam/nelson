@@ -30,14 +30,52 @@ interface HeroParallaxProps {
 
 export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [youtubeFrameLoaded, setYoutubeFrameLoaded] = useState(false);
+  const [directVideoReady, setDirectVideoReady] = useState(false);
+  const [loadDirectVideo, setLoadDirectVideo] = useState(false);
   const youtubeId = getYouTubeId(videoSrc);
 
   const poster = posterSrc?.trim() || undefined;
 
   useEffect(() => {
     setYoutubeFrameLoaded(false);
+    setDirectVideoReady(false);
+    setLoadDirectVideo(false);
   }, [videoSrc]);
+
+  /** Defer hero MP4 until idle so the poster image can be LCP, not the video file. */
+  useEffect(() => {
+    if (youtubeId || !videoSrc.trim()) return;
+
+    let cancelled = false;
+    const start = () => {
+      if (!cancelled) setLoadDirectVideo(true);
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(start, { timeout: 2000 });
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback(id);
+      };
+    }
+
+    const timer = window.setTimeout(start, 1200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [youtubeId, videoSrc]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!loadDirectVideo || !video || !videoSrc.trim()) return;
+
+    video.src = videoSrc;
+    video.load();
+    void video.play().catch(() => {});
+  }, [loadDirectVideo, videoSrc]);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -88,17 +126,34 @@ export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProp
             />
           </div>
         ) : (
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster={poster}
-            fetchPriority="high"
-            className="absolute inset-0 h-full w-full bg-plati-dark object-contain object-center md:object-cover"
-            src={videoSrc}
-          />
+          <>
+            {poster ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={poster}
+                alt=""
+                aria-hidden
+                fetchPriority="high"
+                decoding="async"
+                className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-700 md:object-cover ${
+                  directVideoReady ? 'opacity-0' : 'opacity-100'
+                }`}
+              />
+            ) : null}
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="none"
+              poster={poster}
+              onCanPlay={() => setDirectVideoReady(true)}
+              className={`absolute inset-0 h-full w-full bg-plati-dark object-contain object-center transition-opacity duration-700 md:object-cover ${
+                directVideoReady || !poster ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          </>
         )}
         <div className="pointer-events-none absolute inset-0 grain-overlay" aria-hidden />
         {embedUrl && (

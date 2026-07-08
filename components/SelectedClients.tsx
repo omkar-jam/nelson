@@ -67,7 +67,7 @@ export function SelectedClients() {
   return (
     <section className="relative border-y border-night-border bg-plati-dark py-10 sm:py-14 md:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 md:px-12">
-        <ScrollReveal once={false} variant="fade" className="mb-8 text-center sm:mb-10">
+        <ScrollReveal once={true} variant="fade" className="mb-8 text-center sm:mb-10">
           <h2 className="font-display text-display-sm font-light tracking-wide text-cream sm:text-display-md">
             Selected Clients
           </h2>
@@ -76,7 +76,7 @@ export function SelectedClients() {
 
         <ul className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-8 lg:gap-y-12">
           {SELECTED_CLIENTS.map((client, i) => (
-            <ScrollReveal key={client.name} once={false} variant="fade" delay={0.05 * i}>
+            <ScrollReveal key={client.name} once={true} variant="fade" delay={0.05 * i}>
               <li className="group flex h-full flex-col items-center justify-center text-center">
                 <div
                   className={`flex h-20 w-full items-center justify-center sm:h-24 ${
