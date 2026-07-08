@@ -5,13 +5,17 @@ import { ScrollReveal } from '@/components/ScrollReveal';
 const DEFAULT_LOGO_CLASS =
   'client-logo max-h-12 w-auto max-w-[85%] object-contain transition duration-300 group-hover:opacity-100 sm:max-h-14';
 
+const TEXT_LOGO_CLASS =
+  'client-logo h-full w-auto max-w-full origin-center scale-[1.12] object-contain transition duration-300 group-hover:opacity-100 sm:scale-[1.18]';
+
 const SELECTED_CLIENTS = [
   {
     name: 'National Portrait Gallery, London',
     logo: '/clients/npg.svg',
-    width: 320,
-    height: 52,
-    logoClassName: `${DEFAULT_LOGO_CLASS} max-h-[4.5rem] max-w-[95%] sm:max-h-20`,
+    width: 376,
+    height: 58,
+    logoClassName: TEXT_LOGO_CLASS,
+    logoWrapperClassName: 'overflow-visible px-1',
   },
   {
     name: 'UNESCO',
@@ -29,8 +33,9 @@ const SELECTED_CLIENTS = [
     name: 'Walt Disney / Industrial Light & Magic',
     logo: '/clients/walt-disney-ilm.svg',
     width: 280,
-    height: 60,
-    logoClassName: `${DEFAULT_LOGO_CLASS} max-h-[4.5rem] max-w-[95%] sm:max-h-20`,
+    height: 68,
+    logoClassName: TEXT_LOGO_CLASS,
+    logoWrapperClassName: 'overflow-visible px-1',
   },
   {
     name: 'Bank of America',
@@ -73,7 +78,11 @@ export function SelectedClients() {
           {SELECTED_CLIENTS.map((client, i) => (
             <ScrollReveal key={client.name} once={false} variant="fade" delay={0.05 * i}>
               <li className="group flex h-full flex-col items-center justify-center text-center">
-                <div className="flex h-20 w-full items-center justify-center sm:h-24">
+                <div
+                  className={`flex h-20 w-full items-center justify-center sm:h-24 ${
+                    'logoWrapperClassName' in client ? client.logoWrapperClassName : ''
+                  }`}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={client.logo}
