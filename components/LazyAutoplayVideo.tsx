@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
 interface LazyAutoplayVideoProps {
   src: string;
@@ -19,7 +20,7 @@ export function LazyAutoplayVideo({
   src,
   poster,
   className = '',
-  rootMargin = '250px 0px',
+  rootMargin = '200px 0px',
 }: LazyAutoplayVideoProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -55,14 +56,14 @@ export function LazyAutoplayVideo({
   return (
     <div ref={containerRef} className={`relative overflow-hidden ${className}`}>
       {poster ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           src={poster}
           alt=""
           aria-hidden
-          decoding="async"
-          loading="lazy"
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+          fill
+          sizes="(max-width: 768px) 100vw, 1152px"
+          quality={65}
+          className={`object-cover transition-opacity duration-500 ${
             active ? 'opacity-0' : 'opacity-100'
           }`}
         />
@@ -78,7 +79,7 @@ export function LazyAutoplayVideo({
           playsInline
           preload="none"
           poster={poster}
-          className="h-full w-full object-cover"
+          className="relative z-[1] h-full w-full object-cover"
         />
       ) : null}
     </div>

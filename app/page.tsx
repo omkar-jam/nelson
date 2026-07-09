@@ -3,7 +3,8 @@ import { getPublishedPosts } from '@/lib/posts';
 import { getAllSettings } from '@/lib/site-settings';
 import { HomeContent } from './HomeContent';
 
-export const dynamic = 'force-dynamic';
+/** ISR: avoid force-dynamic so HTML can be cached at the edge (helps TTFB). */
+export const revalidate = 60;
 
 function heroIsYouTube(url: string): boolean {
   const u = url.trim();
@@ -61,9 +62,8 @@ export default async function HomePage() {
           <link rel="preconnect" href="https://i.ytimg.com" crossOrigin="anonymous" />
         </>
       ) : null}
-      {posterTrimmed ? (
-        <link rel="preload" href={posterTrimmed} as="image" fetchPriority="high" />
-      ) : null}
+      {/* Poster preload is handled by next/image `priority` in HeroParallax
+          (optimized AVIF/WebP). Do not preload the raw R2 PNG — it is ~1.2MB. */}
       <HomeContent
         heroVideoUrl={heroVideoUrl}
         heroPosterUrl={posterTrimmed}

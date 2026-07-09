@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 
 const NAV_LINKS = [
   { label: 'Artwork', href: '/#works' },
@@ -18,11 +17,29 @@ function linkIsActive(pathname: string, href: string) {
   return pathname === href;
 }
 
+/** Lightweight nav — CSS only (no Framer) to keep mobile TBT low. */
 export function SiteNav() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const max = doc.scrollHeight - doc.clientHeight;
+        setScrollProgress(max > 0 ? doc.scrollTop / max : 0);
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -45,10 +62,7 @@ export function SiteNav() {
   }, [pathname]);
 
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 80, damping: 22, delay: 0.15 }}
+    <nav
       className="fixed top-0 left-0 right-0 z-50 border-b border-plati-border/40 bg-plati-dark/95 backdrop-blur-sm"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
@@ -84,32 +98,25 @@ export function SiteNav() {
           })}
         </div>
 
-        <motion.button
+        <button
           type="button"
           onClick={() => setMenuOpen((o) => !o)}
           className="relative flex h-11 w-11 shrink-0 items-center justify-center sm:hidden"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={menuOpen}
-          whileTap={{ scale: 0.94 }}
         >
-          {/* Outer frame — subtle “picture frame” nod */}
-          <motion.span
+          <span
             aria-hidden
-            className="pointer-events-none absolute inset-0 rounded-sm border border-gleam/20 shadow-[inset_0_0_0_1px_rgba(197,191,180,0.06)]"
-            animate={
-              menuOpen
-                ? { borderColor: 'rgba(212, 196, 168, 0.42)', rotate: 90 }
-                : { borderColor: 'rgba(197, 191, 180, 0.22)', rotate: 0 }
-            }
-            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+            className={`pointer-events-none absolute inset-0 rounded-sm border shadow-[inset_0_0_0_1px_rgba(197,191,180,0.06)] transition-all duration-300 ${
+              menuOpen ? 'rotate-90 border-gleam/40' : 'border-gleam/20'
+            }`}
           />
-          <motion.span
+          <span
             aria-hidden
-            className="pointer-events-none absolute inset-[5px] rounded-[2px] border border-plati-border/50"
-            animate={menuOpen ? { opacity: 0.35, scale: 0.92 } : { opacity: 0.7, scale: 1 }}
-            transition={{ duration: 0.25 }}
+            className={`pointer-events-none absolute inset-[5px] rounded-[2px] border border-plati-border/50 transition-all duration-250 ${
+              menuOpen ? 'scale-90 opacity-35' : 'opacity-70'
+            }`}
           />
-          {/* Corner ticks */}
           <svg
             aria-hidden
             className="pointer-events-none absolute inset-[7px] text-gleam/25"
@@ -120,83 +127,54 @@ export function SiteNav() {
           </svg>
 
           <span className="relative flex h-5 w-[18px] flex-col items-center justify-center gap-[5px]">
-            <motion.span
-              animate={
-                menuOpen
-                  ? { rotate: 45, y: 6, backgroundColor: 'rgba(212, 196, 168, 0.95)' }
-                  : { rotate: 0, y: 0, backgroundColor: 'rgba(197, 191, 180, 0.85)' }
-              }
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-              className="block h-px w-[18px] origin-center rounded-full"
+            <span
+              className={`block h-px w-[18px] origin-center rounded-full bg-plati-soft transition-transform duration-300 ${
+                menuOpen ? 'translate-y-[6px] rotate-45 bg-gleam' : ''
+              }`}
             />
-            <motion.span
-              animate={
-                menuOpen
-                  ? { opacity: 0, scaleX: 0.2, x: -6 }
-                  : { opacity: 1, scaleX: 1, x: 0 }
-              }
-              transition={{ duration: 0.2 }}
-              className="block h-px w-[18px] rounded-full bg-plati-soft"
+            <span
+              className={`block h-px w-[18px] rounded-full bg-plati-soft transition-all duration-200 ${
+                menuOpen ? 'scale-x-20 -translate-x-1.5 opacity-0' : ''
+              }`}
             />
-            <motion.span
-              animate={
-                menuOpen
-                  ? { rotate: -45, y: -6, backgroundColor: 'rgba(212, 196, 168, 0.95)' }
-                  : { rotate: 0, y: 0, backgroundColor: 'rgba(197, 191, 180, 0.85)' }
-              }
-              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-              className="block h-px w-[18px] origin-center rounded-full"
+            <span
+              className={`block h-px w-[18px] origin-center rounded-full bg-plati-soft transition-transform duration-300 ${
+                menuOpen ? '-translate-y-[6px] -rotate-45 bg-gleam' : ''
+              }`}
             />
           </span>
-        </motion.button>
+        </button>
       </div>
 
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 h-px bg-gleam origin-left"
-        style={{ scaleX }}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-px origin-left bg-gleam"
+        style={{ transform: `scaleX(${scrollProgress})` }}
         aria-hidden
       />
 
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            key="mobile-menu"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-            className="overflow-hidden border-t border-plati-border bg-plati-dark/98 backdrop-blur-md sm:hidden"
-          >
-            <div
-              className="flex flex-col px-6 pb-4 pt-2"
-              style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+      <div
+        className={`overflow-hidden border-t border-plati-border bg-plati-dark/98 backdrop-blur-md transition-[max-height,opacity] duration-300 ease-out sm:hidden ${
+          menuOpen ? 'max-h-80 opacity-100' : 'max-h-0 border-transparent opacity-0'
+        }`}
+      >
+        <div
+          className="flex flex-col px-6 pb-4 pt-2"
+          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+        >
+          {NAV_LINKS.map(({ label, href }) => (
+            <Link
+              key={label}
+              href={href}
+              onClick={() => setMenuOpen(false)}
+              className={`block border-b border-plati-border/50 py-4 font-body text-body uppercase tracking-widest transition active:text-gleam ${
+                linkIsActive(pathname, href) ? 'text-gleam' : 'text-plati-soft hover:text-gleam'
+              }`}
             >
-              {NAV_LINKS.map(({ label, href }, i) => (
-                <motion.div
-                  key={label}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    delay: 0.06 + i * 0.05,
-                    duration: 0.24,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  }}
-                >
-                  <Link
-                    href={href}
-                    onClick={() => setMenuOpen(false)}
-                    className={`block border-b border-plati-border/50 py-4 font-body text-body uppercase tracking-widest transition active:text-gleam ${
-                      linkIsActive(pathname, href) ? 'text-gleam' : 'text-plati-soft hover:text-gleam'
-                    }`}
-                  >
-                    {label}
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
+              {label}
+            </Link>
+          ))}
+        </div>
+      </div>
+    </nav>
   );
 }

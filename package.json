@@ -25,7 +25,6 @@
     "@tiptap/react": "^3.20.4",
     "@tiptap/starter-kit": "^3.20.4",
     "bcryptjs": "^2.4.3",
-    "framer-motion": "^12.34.3",
     "next": "^14.2.0",
     "next-auth": "^4.24.0",
     "react": "^18.2.0",

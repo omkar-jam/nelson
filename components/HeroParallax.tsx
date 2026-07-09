@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import Image from 'next/image';
 
 const YOUTUBE_PREFIX = 'youtube:';
 
@@ -21,6 +21,11 @@ function getYouTubeId(videoSrc: string): string | null {
   return null;
 }
 
+function isNarrowViewport(): boolean {
+  if (typeof window === 'undefined') return true;
+  return window.matchMedia('(max-width: 767px)').matches;
+}
+
 interface HeroParallaxProps {
   children: React.ReactNode;
   videoSrc: string;
@@ -28,8 +33,8 @@ interface HeroParallaxProps {
   posterSrc?: string;
 }
 
+/** Hero media — no Framer (keeps mobile TBT low). Poster is LCP via next/image. */
 export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProps) {
-  const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [youtubeFrameLoaded, setYoutubeFrameLoaded] = useState(false);
   const [directVideoReady, setDirectVideoReady] = useState(false);
@@ -44,7 +49,11 @@ export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProp
     setLoadDirectVideo(false);
   }, [videoSrc]);
 
-  /** Defer hero MP4 until idle so the poster image can be LCP, not the video file. */
+  /**
+   * Defer hero MP4 so the poster can be LCP.
+   * On mobile: wait for gesture / long timeout (video is multi-MB).
+   * On desktop: load after short idle.
+   */
   useEffect(() => {
     if (youtubeId || !videoSrc.trim()) return;
 
@@ -53,15 +62,30 @@ export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProp
       if (!cancelled) setLoadDirectVideo(true);
     };
 
+    const narrow = isNarrowViewport();
+
+    if (narrow) {
+      const onInteract = () => start();
+      window.addEventListener('pointerdown', onInteract, { once: true, passive: true });
+      window.addEventListener('scroll', onInteract, { once: true, passive: true });
+      const timer = window.setTimeout(start, 8000);
+      return () => {
+        cancelled = true;
+        window.removeEventListener('pointerdown', onInteract);
+        window.removeEventListener('scroll', onInteract);
+        window.clearTimeout(timer);
+      };
+    }
+
     if (typeof window.requestIdleCallback === 'function') {
-      const id = window.requestIdleCallback(start, { timeout: 2000 });
+      const id = window.requestIdleCallback(start, { timeout: 2500 });
       return () => {
         cancelled = true;
         window.cancelIdleCallback(id);
       };
     }
 
-    const timer = window.setTimeout(start, 1200);
+    const timer = window.setTimeout(start, 1500);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
@@ -77,14 +101,6 @@ export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProp
     void video.play().catch(() => {});
   }, [loadDirectVideo, videoSrc]);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
-
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1, 1.03, 1.1]);
-  const gradientOpacity = useTransform(scrollYProgress, [0.2, 0.5], [1, 0.35]);
-
   const embedUrl = youtubeId
     ? `https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1`
     : null;
@@ -94,28 +110,33 @@ export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProp
       ? `transition-opacity duration-700 ${youtubeFrameLoaded ? 'opacity-100' : 'opacity-0'}`
       : '';
 
+  const posterImage = poster ? (
+    <Image
+      src={poster}
+      alt=""
+      aria-hidden
+      fill
+      priority
+      sizes="100vw"
+      quality={70}
+      className={`object-contain object-center transition-opacity duration-700 md:object-cover ${
+        embedUrl
+          ? youtubeFrameLoaded
+            ? 'opacity-0'
+            : 'opacity-100'
+          : directVideoReady
+            ? 'opacity-0'
+            : 'opacity-100'
+      }`}
+    />
+  ) : null;
+
   return (
-    <section
-      ref={sectionRef}
-      className={`relative flex w-full flex-col md:min-h-[100dvh] ${MOBILE_NAV_OFFSET_CLASS}`}
-    >
-      <motion.div
-        className="relative z-0 w-full shrink-0 overflow-hidden bg-plati-dark aspect-video md:absolute md:inset-0 md:aspect-auto md:min-h-[100dvh]"
-        style={{ scale }}
-      >
+    <section className={`relative flex w-full flex-col md:min-h-[100dvh] ${MOBILE_NAV_OFFSET_CLASS}`}>
+      <div className="relative z-0 w-full shrink-0 overflow-hidden bg-plati-dark aspect-video md:absolute md:inset-0 md:aspect-auto md:min-h-[100dvh]">
         {embedUrl ? (
           <div className="absolute inset-0 overflow-hidden bg-plati-dark">
-            {poster ? (
-              <img
-                src={poster}
-                alt=""
-                aria-hidden
-                fetchPriority="high"
-                className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${
-                  youtubeFrameLoaded ? 'opacity-0' : 'opacity-100'
-                }`}
-              />
-            ) : null}
+            {posterImage}
             <iframe
               title="Hero video"
               src={embedUrl}
@@ -127,32 +148,22 @@ export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProp
           </div>
         ) : (
           <>
-            {poster ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={poster}
-                alt=""
-                aria-hidden
-                fetchPriority="high"
-                decoding="async"
-                className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-700 md:object-cover ${
-                  directVideoReady ? 'opacity-0' : 'opacity-100'
+            {posterImage}
+            {loadDirectVideo ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="none"
+                poster={poster}
+                onCanPlay={() => setDirectVideoReady(true)}
+                className={`absolute inset-0 h-full w-full bg-plati-dark object-contain object-center transition-opacity duration-700 md:object-cover ${
+                  directVideoReady || !poster ? 'opacity-100' : 'opacity-0'
                 }`}
               />
             ) : null}
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="none"
-              poster={poster}
-              onCanPlay={() => setDirectVideoReady(true)}
-              className={`absolute inset-0 h-full w-full bg-plati-dark object-contain object-center transition-opacity duration-700 md:object-cover ${
-                directVideoReady || !poster ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
           </>
         )}
         <div className="pointer-events-none absolute inset-0 grain-overlay" aria-hidden />
@@ -162,12 +173,11 @@ export function HeroParallax({ children, videoSrc, posterSrc }: HeroParallaxProp
             aria-hidden
           />
         )}
-      </motion.div>
-      <motion.div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden h-40 bg-gradient-to-t from-plati-dark to-transparent md:block"
-        style={{ opacity: gradientOpacity }}
-        aria-hidden
-      />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-10 hidden h-40 bg-gradient-to-t from-plati-dark to-transparent md:block"
+          aria-hidden
+        />
+      </div>
       {children}
     </section>
   );

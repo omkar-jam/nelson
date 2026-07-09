@@ -5,6 +5,8 @@ import { getSetting, SETTING_KEYS } from './site-settings';
 
 /** Served from `public/videos/drone-hero.mov` */
 const FALLBACK_HERO_VIDEO = '/videos/drone-hero.mov';
+/** Local still used when admin has not set a poster (keeps LCP off the video file). */
+const FALLBACK_HERO_POSTER = '/images/hero-poster-fallback.jpg';
 
 
 export { getHomeGalleryMediaType, isVideoUrl } from './gallery-media';
@@ -41,10 +43,10 @@ function hasValidMedia(url: string): boolean {
 export async function getHomeArtworkData(): Promise<HomeArtworkData> {
   const [heroVideoUrlRaw, heroPosterUrlRaw] = await Promise.all([
     getSetting(SETTING_KEYS.HERO_VIDEO_URL).catch(() => FALLBACK_HERO_VIDEO),
-    getSetting(SETTING_KEYS.HERO_VIDEO_POSTER_URL).catch(() => ''),
+    getSetting(SETTING_KEYS.HERO_VIDEO_POSTER_URL).catch(() => FALLBACK_HERO_POSTER),
   ]);
   const heroVideoUrl = heroVideoUrlRaw || FALLBACK_HERO_VIDEO;
-  const heroPosterUrl = heroPosterUrlRaw.trim();
+  const heroPosterUrl = (heroPosterUrlRaw || FALLBACK_HERO_POSTER).trim();
 
   let artworks: Awaited<ReturnType<typeof getArtworks>>;
   try {

@@ -418,4 +418,33 @@
   .animate-scroll-hint,
   .animate-marquee,
   .text-shimmer { animation: none; }
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
 }
+
+/* Lightweight scroll reveals (replaces Framer ScrollReveal) */
+.scroll-reveal {
+  opacity: 0;
+  transition-property: opacity, transform, filter;
+  transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+  will-change: opacity, transform;
+}
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  will-change: auto;
+}
+.scroll-reveal--slideUp { transform: translateY(2rem); }
+.scroll-reveal--slideDown { transform: translateY(-2rem); }
+.scroll-reveal--slideLeft { transform: translateX(2.5rem); }
+.scroll-reveal--slideRight { transform: translateX(-2.5rem); }
+.scroll-reveal--scale { transform: scale(0.96); }
+.scroll-reveal--scaleRotate { transform: scale(0.94); }
+.scroll-reveal--blur { filter: blur(10px); }
+.scroll-reveal--fade { transform: none; }
+.scroll-reveal--flip { transform: perspective(800px) rotateX(-12deg); }
+
